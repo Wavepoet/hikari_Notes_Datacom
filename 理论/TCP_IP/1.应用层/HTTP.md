@@ -1,6 +1,8 @@
-# **HTTP：超文本传输协议**
+# **HTTP（HyperText Transfer Protocol，超文本传输协议）**
 
-它是基于**TCP协议**的**应用层传输协议**，简单来说就是**客户端和服务端进行数据传输的一种规则**。请求和响应消息的头以[ASCII](https://baike.baidu.com/item/ASCII/309296?fromModule=lemma_inlink)形式给出；而消息内容则具有一个类似[MIME](https://baike.baidu.com/item/MIME/2900607?fromModule=lemma_inlink)的格式。
+它是基于**TCP协议**的**应用层传输协议**，简单来说就是**客户端和服务端进行数据传输的一种规则**。HTTP最早是为WWW（万维网）服务而制定的，是WWW的基础，但如今HTTP的使用范围已经远远超出了WWW。（www可以理解为我们使用浏览器访问的众多网站的集合）
+
+请求和响应消息的头以[ASCII](https://baike.baidu.com/item/ASCII/309296?fromModule=lemma_inlink)形式给出；而消息内容则具有一个类似[MIME](https://baike.baidu.com/item/MIME/2900607?fromModule=lemma_inlink)的格式。
 
 > 特点
 
@@ -11,6 +13,8 @@
 - **无连接**：无连接的含义是限制每次连接只处理一个请求
 - **无状态**：HTTP协议是无状态协议。无状态是指协议对于事务处理没有记忆能力。
 - **简单快速**：客户向服务器请求服务时，只需传送请求方法和路径。
+- 使用明文传输
+- 使用TCP的80端口
 
 **太多，推荐查询[HTTP_百度百科 (baidu.com)](https://baike.baidu.com/item/http/243074)
 
@@ -30,7 +34,6 @@ URL由3个主要的部分构成：**协议**，**服务器地址**和**具体地
 ### 格式：
 
 ```
-
 scheme://host[:port#]/path/…/[;url-params][?query-string][#anchor]
 ```
 
@@ -58,11 +61,31 @@ Web上可用的每种资源都由一个通用资源标识符（URI）进行定�
 
 所以，URL 就是 URI 的 定位。
 
+---
+
+## **R/R模式（请求/响应）**
+HTTP使用R/R模式，即客户端向服务器发送请求报文，向服务器请求进行对应的操作，服务器向客户端返回响应报文。
+
+---
 ## **REQUEST：请求**
 
 客户端发送一个HTTP请求到服务器的请求消息包括以下格式：**请求行、请求头部、空行和请求数据**四个部分组成，下图给出了请求报文的一般格式
 
 ![](HTTP_image/image1.png)
+
+```bash
+#请求行
+POST /api/login HTTP/1.1
+#请求头部
+Host: api.myservice.com
+User-Agent: Mozilla/5.0
+Content-Type: application/json
+Content-Length: 28
+#空行
+
+#请求数据
+{"user": "tom", "pass": "123"}
+```
 
 ### **请求行**
 
@@ -80,9 +103,8 @@ Web上可用的每种资源都由一个通用资源标识符（URI）进行定�
 | **connect**  | 保留将来使用                                                     |
 | **opptions** | 请求查询服务器的性能，或者查询与资源相关的选项和需求             |
 
-### **请求头 Header**
-
-包含一些对消息的描述信息，格式是**`<field>`:`<value>`**。具体地，各种消息头又被分为四大类：**通用头、请求头、响应头**（用于响应消息）和**实体头**。
+### **请求头部**
+请求头部以名值对的形式书写，请求头部包含一些对消息的描述信息，格式是**`<field>`:`<value>`**。具体地，各种消息头又被分为四大类：**通用头、请求头、响应头**（用于响应消息）和**实体头**。
 
 [鲜为人知的HTTP协议头字段详解大全 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/34908942)
 
@@ -121,6 +143,9 @@ Content-Length: 122
 </html>
 ```
 
+### **状态行**
+状态行包含三个信息，分别为：HTTP协议版本、状态码、状态消息。
+
 **HTTP状态码:**
 
 | 状态码  | 含义                                                                 |
@@ -132,3 +157,41 @@ Content-Length: 122
 | 500~599 | 服务器端出现错误                                                     |
 
 [**HTTP 状态码 | 菜鸟教程 (runoob.com)**](https://www.runoob.com/http/http-status-codes.html)
+
+### **消息头部**
+
+消息头部也以名值对的形式书写，消息头部包含一些对消息的描述信息，格式是**`<field>`:`<value>`**。
+
+## **HTTP工作流程**
+当用户访问一个网站时，浏览器首先向域名服务器（DNS）请求解析该域名对应的IP地址，然后向该IP地址发送HTTP请求。
+HTTP协议是基于TCP/IP协议的，因此，HTTP请求和响应都是通过TCP连接实现的。
+HTTP协议采用请求/响应模型，即客户端向服务器发送请求报文，服务器向客户端返回响应报文。
+（这个小人好“糖”啊。w(ﾟДﾟ)w）
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 用户
+    participant Browser as 浏览器
+    participant DNS as DNS服务器
+    participant Server as Web服务器
+
+    User->>Browser: 输入 URL 并回车
+    
+    Note over Browser: 1. 解析 URL 结构
+
+    Browser->>DNS: 2. 查询域名的 IP 地址
+    DNS-->>Browser: 返回 IP (例如 1.2.3.4)
+
+    Browser->>Server: 3. 建立 TCP 连接 (三次握手)
+    activate Server
+    
+    Browser->>Server: 4. 发送 HTTP 请求 (GET /index.html)
+    
+    Note over Server: 5. 处理请求，读取资源
+
+    Server-->>Browser: 返回 HTTP 响应 (200 OK + HTML数据)
+    deactivate Server
+
+    Note over Browser: 6. 解析 HTML 并渲染页面
+```
