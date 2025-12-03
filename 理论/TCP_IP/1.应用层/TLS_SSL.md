@@ -101,16 +101,34 @@ TLS握手协议关心“如何建立安全参数”，
     C->>S: "Application Data (HTTP Request, 对称加密)"
     S->>C: "Application Data (HTTP Response, 对称加密)"
     ```
+
     C：客户端
-    
     S：服务端
+
     - 第一阶段（hello）:
-    C：发送TLS版本号、一个生成32B的随机数``Random_C``,用于生产最终密钥,以及发送``Cipher Suites``列表，表明支持的加密算法。
-    S：确认使用的TLS版本号，接收随机数``Random_C``。发送生成的随机数``Random_S``，选择一个加密算法，并返回证书链。
+    C：发送TLS版本号、一个生成32B的随机数``Random_C``,用于生产最终密钥。以及发送``Cipher Suites``列表，表明支持的加密算法。
+    S：确认使用的TLS版本号，接收随机数``Random_C``。发送生成的随机数``Random_S``，选择一个加密算法。
     - 第二阶段（密钥交换）：
     S：发送证书链，并使用私钥签名。
-    C：验证证书链的合法性，并生成ECDHE参数。
-    
+    C：验证证书链的合法性。
+    S：生成ECDHE的椭圆曲线参数。并用自己的私钥签名，发给客户端。这包含了生成密钥所需的“公钥部分”
+    S：发送``Server Hello Done``告诉客户端我说完了。
+    - 第三阶段（密钥生成）：
+    C：接收ECDHE的椭圆曲线参数，并生成自己的椭圆曲线参数。
+    C：发送ECDHE的公钥参数。
+    S：验证ECDHE的公钥参数的合法性。
+    S：生成ECDHE的共享密钥。
+    C：验证ECDHE的共享密钥的合法性。
+    C：发送``Change Cipher Spec``通知服务端我准备切换加密。
+    C：发送``Finished``消息，包含所有握手消息的Hash值。
+    S：验证``Change Cipher Spec``消息的合法性。
+    S：发送``Change Cipher Spec``消息通知客户端我也准备切换加密。
+    S：发送``Finished``消息，包含所有握手消息的Hash值。
+    - 第四阶段（应用数据传输）：
+    C：发送HTTP请求。
+    S：接收HTTP请求。
+    C：发送HTTP响应。
+    S：接收HTTP响应。
     **1-RTT 模式**
 
     ```mermaid
