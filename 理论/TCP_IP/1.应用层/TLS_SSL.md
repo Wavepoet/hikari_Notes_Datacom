@@ -1,4 +1,7 @@
+<!-- markdownlint-disable MD046 -->
+
 # SSL/TLS协议
+
 SSL/TLS是一种安全协议，用于在Internet上进行安全通信。有时也称为“安全套接层”或“安全层”。
 SSL/TLS仅作为通信框架使用，可以承载其他的应用层协议，为承载协议提供安全保障。现在很多协议都会与TLS/SSL一起使用，例如HTTP、SMTP、POP3、SSH……
 
@@ -12,10 +15,12 @@ TLS(Transport Layer Security)是SSL的升级版本，由IETF制定标准，是SS
 
 TLS1.0由RFC-2246定义，TLS1.1由RFC-4346定义，TLS1.2由RFC-5246定义，TLS1.3由RFC-8446定义。
 
-## TLS解决的问题
+    ## TLS解决的问题
 TLS使用加密(Encryption)解决了机密性问题，
 使用消息认证码(Message Authentication Code, MAC)解决了完整性问题，
 使用数字证书(Digital Certificate)解决了源认证性问题。
+
+---
 
 ## TLS的架构
 
@@ -51,29 +56,42 @@ graph TD
 ```
 
 TLS协议的架构分为两层：底层为TLS记录协议，上层为TLS握手协议。TLS握手协议又可以分为握手协议，密码规格变更协议，警报协议，应用数据协议个协议。
+
 ### TLS记录协议
+
 TLS记录协议关心“如何安全地传输一段数据”， 主要职责是封装，分片，压缩，添加MAC/加密，添加TLS记录头。
 的所有协议都要经过TLS记录协议的封装才能发送给TCP。
+
 - 分片：TLS的MTU为2^14字节，即16KB，大于该值的报文要分片成多个小的TLS消息。
+
 - 压缩：由于 CRIME 和 BREACH 等安全漏洞的存在，现代 TLS 实现通常禁用压缩。
+
 - 添加MAC/加密：这个MAC不是以太网的那个MAC，而是完整性保护(MAC)。用于对数据计算消息验证码 (HMAC)，确保数据未被篡改。
+
 - 添加TLS记录头：加上 TLS Record Header（包含内容类型、版本号、长度）。
 
 ### TLS握手协议
-TLS握手协议关心“如何建立安全参数”，
+
+TLS握手协议关心“如何建立安全参数”。
+
 - 握手协议：Content-Type:22。用于在客户端和服务器之间协商版本、加密算法、验证身份（证书）以及生成密钥。
 TLS1.2中使用ECDHE密钥交换。
 在TLS1.3中，ECDHE密钥交换被改为使用P256或P384椭圆曲线。
 新增了1-RTT模式，这种省略了很多握手过程，直接使用之前协商好的密钥进行加密通信。
+
 - 密码规格变更协议：这个协议只包含1字节，感觉更像是一个位的存在。
 用于通知对端改变加密算法。即“从这条消息之后的下一条记录开始，我将使用刚才协商好的密钥和算法进行加密”。
 TLS1.3为了优化性能，弱化了这个协议的存在感，但在兼容模式下依然存在。
+
 - 警报协议：用于通知对方连接出现了问题，或者用来正常关闭连接。
+
 - 应用数据协议：承载真正的业务数据,可以理解为data吧。
 
-## 握手协议交互过程：
+---
 
-### **ECDHE 模式**:
+## 握手协议交互过程
+
+### **ECDHE 模式**
 
 ```mermaid
 sequenceDiagram
@@ -110,25 +128,44 @@ S->>C: "Application Data (HTTP Response, 对称加密)"
 ```
 
 C：客户端
+
 S：服务端
 
 - **第一阶段（hello）**:
 
-C：（Client Hello）发送TLS版本号、生成一个32B的随机数``Random_C``,用于生产最终密钥。以及发送``Cipher Suites``列表，表明支持的加密算法。
+C：发送一个``Client Hello``数据包。包含：
 
-S：（Server Hello）确认使用的TLS版本号，接收随机数``Random_C``。发送生成的随机数``Random_S``，选择一个``Cipher Suites``中的加密算法。
+``` text
+- 支持的TLS版本号
+- 一个32B的随机数``Random_C``，用于生产最终密钥
+- 一个``Cipher Suites``列表，表明支持的加密算法
+```
+
+S：接收到``Client Hello``数据包。发送``Server Hello``包含:
+
+```text
+- 选择的TLS版本号
+- 发送生成的随机数``Random_S``
+- ``Cipher Suites``中选择的加密算法。
+```
 
 如果务器能找到可接受的参数集，但C中的信息不足以进行握手，S则会发送```Hello Retry Request```要求其补充信息。
 
-- **第二阶段（S的密钥交换）**：
+- **第二阶段（的密钥交换）**：
 
-S：发送证书链，并使用私钥签名。
+S：使用私钥签名发送``Server Certificate``数据包, 包含服务端的证书链。
 
-S：生成ECDHE的椭圆曲线参数。并用自己的私钥签名，发给客户端。这包含了生成密钥所需的“公钥部分”
+S：使用私钥签名发送``Server Key Exchange``数据包，生成ECDHE的椭圆曲线参数作为发给客户端**临时密钥**。这包含了生成密钥所需的“公钥部分”
+```text
+- 私钥：Priv_{Server\_Eph}
+- 私钥：Priv_{Server\_Eph}
+```
 
 S：发送``Server Hello Done``告诉客户端我说完了。
 
 C：验证证书链的合法性。
+
+为了防止中间人攻击，服务端使用证书中的长期私钥对关键参数进行签名。签名内容通常包括：``Client Random + Server Random + Server Ephemeral Public Key``。
 
 - **第三阶段（密钥生成）**：
 
@@ -158,7 +195,7 @@ C：发送HTTP请求。
 
 S：接收HTTP请求。
 
-### **1-RTT 模式**：
+### **1-RTT 模式**
 
 ```mermaid
 sequenceDiagram
@@ -221,7 +258,7 @@ C：发送HTTP请求。
 
 S：接收HTTP请求。
 
-### 使用TLS加密通信的数据经过处理的过程：
+### 使用TLS加密通信的数据经过处理的过程
 
 ```mermaid
 flowchart TD
@@ -250,7 +287,4 @@ flowchart TD
     style A1 fill:#f3e5f5
 ```
 
-
-## TLS的数据包
-
-## TLS1.1，1.2，1.3的区别
+## TLS1.0, TLS1.1, TLS1.2，TLS1.3的区别
