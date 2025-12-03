@@ -62,111 +62,167 @@ TLS记录协议关心“如何安全地传输一段数据”， 主要职责是�
 ### TLS握手协议
 TLS握手协议关心“如何建立安全参数”，
 - 握手协议：Content-Type:22。用于在客户端和服务器之间协商版本、加密算法、验证身份（证书）以及生成密钥。
-    TLS1.2中使用ECDHE密钥交换。
-    在TLS1.3中，ECDHE密钥交换被改为使用P256或P384椭圆曲线。
-    新增了1-RTT模式，这种省略了很多握手过程，直接使用之前协商好的密钥进行加密通信。
-  - 握手协议交互过程：
-    
-    **ECDHE 模式**
-    ```mermaid
-    sequenceDiagram
-    autonumber
-    participant C as 客户端 (Client)
-    participant S as 服务端 (Server)
-
-    Note over C,S: === 第一阶段：Hello (协商) ===
-    C->>S: "Client Hello<br/>(随机数 Random_C, 支持的套件列表)"
-    S->>C: "Server Hello<br/>(随机数 Random_S, 选定套件 TLS_ECDHE_RSA...)"
-
-    Note over C,S: === 第二阶段：身份验证与密钥交换 ===
-    S->>C: "Certificate (服务端证书链)"
-    Note right of S: ECDHE 特有步骤
-    S->>C: "Server Key Exchange<br/>(服务端椭圆曲线参数 + 私钥签名)"
-    S->>C: "Server Hello Done (我说完了)"
-
-    Note left of C: 1. 验证证书合法性<br/>2. 验证签名完整性<br/>3. 生成客户端椭圆曲线参数
-    C->>S: "Client Key Exchange<br/>(客户端椭圆曲线参数)"
-
-    Note over C,S: === 第三阶段：生成密钥 & 验证 ===
-    Note left of C: 此时双方都有了双发随机数 + ECDHE参数<br/>可以在本地算出 -> Pre-Master Secret -> Session Key
-    
-    C->>S: "Change Cipher Spec (准备切换加密)"
-    C->>S: "Finished (前面所有握手消息的 Hash, 已加密)"
-
-    Note right of S: 解密并验证 Hash<br/>验证成功说明密钥一致
-    S->>C: "Change Cipher Spec (我也切换加密)"
-    S->>C: "Finished (服务端握手消息 Hash, 已加密)"
-
-    Note over C,S: === 第四阶段：应用数据传输 (HTTP) ===
-    C->>S: "Application Data (HTTP Request, 对称加密)"
-    S->>C: "Application Data (HTTP Response, 对称加密)"
-    ```
-
-    C：客户端
-    S：服务端
-
-    - 第一阶段（hello）:
-    C：发送TLS版本号、一个生成32B的随机数``Random_C``,用于生产最终密钥。以及发送``Cipher Suites``列表，表明支持的加密算法。
-    S：确认使用的TLS版本号，接收随机数``Random_C``。发送生成的随机数``Random_S``，选择一个加密算法。
-    - 第二阶段（密钥交换）：
-    S：发送证书链，并使用私钥签名。
-    C：验证证书链的合法性。
-    S：生成ECDHE的椭圆曲线参数。并用自己的私钥签名，发给客户端。这包含了生成密钥所需的“公钥部分”
-    S：发送``Server Hello Done``告诉客户端我说完了。
-    - 第三阶段（密钥生成）：
-    C：接收ECDHE的椭圆曲线参数，并生成自己的椭圆曲线参数。
-    C：发送ECDHE的公钥参数。
-    S：验证ECDHE的公钥参数的合法性。
-    S：生成ECDHE的共享密钥。
-    C：验证ECDHE的共享密钥的合法性。
-    C：发送``Change Cipher Spec``通知服务端我准备切换加密。
-    C：发送``Finished``消息，包含所有握手消息的Hash值。
-    S：验证``Change Cipher Spec``消息的合法性。
-    S：发送``Change Cipher Spec``消息通知客户端我也准备切换加密。
-    S：发送``Finished``消息，包含所有握手消息的Hash值。
-    - 第四阶段（应用数据传输）：
-    C：发送HTTP请求。
-    S：接收HTTP请求。
-    C：发送HTTP响应。
-    S：接收HTTP响应。
-    **1-RTT 模式**
-
-    ```mermaid
-    sequenceDiagram
-    autonumber
-    participant C as 客户端 (Client)
-    participant S as 服务端 (Server)
-
-    Note over C,S: === 极速握手 (1-RTT) ===
-    
-    Note left of C: 猜测服务端支持的算法(如X25519)<br/>直接生成 Key Share
-    C->>S: "Client Hello + Key Share<br/>(Random_C + 客户端公钥参数)"
-
-    Note right of S: 收到参数，直接算出 Session Key<br/>后续消息直接加密发送！
-    S->>C: "Server Hello + Key Share<br/>(Random_S + 服务端公钥参数)"
-    
-    Note right of S: 以下消息全部被加密 {Encrypted}
-    S-->>C: "{Encrypted Extensions}"
-    S-->>C: "{CertificateRequest (可选)}"
-    S-->>C: "{Certificate + CertificateVerify}"
-    S-->>C: "{Finished}"
-    
-    Note left of C: 验证证书与签名<br/>握手结束
-    C-->>S: "{Finished}"
-    
-    Note over C,S: === 数据传输 ===
-    C->>S: "Application Data (HTTP Request)"
-    S->>C: "Application Data (HTTP Response)"
-    ```
-
+TLS1.2中使用ECDHE密钥交换。
+在TLS1.3中，ECDHE密钥交换被改为使用P256或P384椭圆曲线。
+新增了1-RTT模式，这种省略了很多握手过程，直接使用之前协商好的密钥进行加密通信。
 - 密码规格变更协议：这个协议只包含1字节，感觉更像是一个位的存在。
-  用于通知对端改变加密算法。即“从这条消息之后的下一条记录开始，我将使用刚才协商好的密钥和算法进行加密”。
-  TLS1.3为了优化性能，弱化了这个协议的存在感，但在兼容模式下依然存在。
+用于通知对端改变加密算法。即“从这条消息之后的下一条记录开始，我将使用刚才协商好的密钥和算法进行加密”。
+TLS1.3为了优化性能，弱化了这个协议的存在感，但在兼容模式下依然存在。
 - 警报协议：用于通知对方连接出现了问题，或者用来正常关闭连接。
-- 应用数据协议：
-  
+- 应用数据协议：承载真正的业务数据,可以理解为data吧。
 
-使用TLS加密通信的数据经过处理的过程：
+## 握手协议交互过程：
+
+### **ECDHE 模式**:
+
+```mermaid
+sequenceDiagram
+autonumber
+participant C as 客户端 (Client)
+participant S as 服务端 (Server)
+
+Note over C,S: === 第一阶段：Hello (协商) ===
+C->>S: "Client Hello<br/>(随机数 Random_C, 支持的套件列表)"
+S->>C: "Server Hello<br/>(随机数 Random_S, 选定套件 TLS_ECDHE_RSA...)"
+
+Note over C,S: === 第二阶段：身份验证与密钥交换 ===
+S->>C: "Certificate (服务端证书链)"
+Note right of S: ECDHE 特有步骤
+S->>C: "Server Key Exchange<br/>(服务端椭圆曲线参数 + 私钥签名)"
+S->>C: "Server Hello Done (我说完了)"
+
+Note left of C: 1. 验证证书合法性<br/>2. 验证签名完整性<br/>3. 生成客户端椭圆曲线参数
+C->>S: "Client Key Exchange<br/>(客户端椭圆曲线参数)"
+
+Note over C,S: === 第三阶段：生成密钥 & 验证 ===
+Note left of C: 此时双方都有了双发随机数 + ECDHE参数<br/>可以在本地算出 -> Pre-Master Secret -> Session Key
+
+C->>S: "Change Cipher Spec (准备切换加密)"
+C->>S: "Finished (前面所有握手消息的 Hash, 已加密)"
+
+Note right of S: 解密并验证 Hash<br/>验证成功说明密钥一致
+S->>C: "Change Cipher Spec (我也切换加密)"
+S->>C: "Finished (服务端握手消息 Hash, 已加密)"
+
+Note over C,S: === 第四阶段：应用数据传输 (HTTP) ===
+C->>S: "Application Data (HTTP Request, 对称加密)"
+S->>C: "Application Data (HTTP Response, 对称加密)"
+```
+
+C：客户端
+S：服务端
+
+- **第一阶段（hello）**:
+
+C：（Client Hello）发送TLS版本号、生成一个32B的随机数``Random_C``,用于生产最终密钥。以及发送``Cipher Suites``列表，表明支持的加密算法。
+
+S：（Server Hello）确认使用的TLS版本号，接收随机数``Random_C``。发送生成的随机数``Random_S``，选择一个``Cipher Suites``中的加密算法。
+
+如果务器能找到可接受的参数集，但C中的信息不足以进行握手，S则会发送```Hello Retry Request```要求其补充信息。
+
+- **第二阶段（S的密钥交换）**：
+
+S：发送证书链，并使用私钥签名。
+
+S：生成ECDHE的椭圆曲线参数。并用自己的私钥签名，发给客户端。这包含了生成密钥所需的“公钥部分”
+
+S：发送``Server Hello Done``告诉客户端我说完了。
+
+C：验证证书链的合法性。
+
+- **第三阶段（密钥生成）**：
+
+C：接收ECDHE的椭圆曲线参数，并生成自己的椭圆曲线参数。
+
+C：发送ECDHE的公钥参数。
+
+S：验证ECDHE的公钥参数的合法性。
+
+S：生成ECDHE的共享密钥。
+
+C：验证ECDHE的共享密钥的合法性。
+
+C：发送``Change Cipher Spec``通知服务端我准备切换加密。
+
+C：发送``Finished``消息，包含所有握手消息的Hash值。
+
+S：验证``Change Cipher Spec``消息的合法性。
+
+S：发送``Change Cipher Spec``消息通知客户端我也准备切换加密。
+
+S：发送``Finished``消息，包含所有握手消息的Hash值。
+
+- **第四阶段（应用数据传输）**：
+
+C：发送HTTP请求。
+
+S：接收HTTP请求。
+
+### **1-RTT 模式**：
+
+```mermaid
+sequenceDiagram
+autonumber
+participant C as 客户端 (Client)
+participant S as 服务端 (Server)
+
+Note over C,S: === 极速握手 (1-RTT) ===
+
+Note left of C: 猜测服务端支持的算法(如X25519)<br/>直接生成 Key Share
+C->>S: "Client Hello + Key Share<br/>(Random_C + 客户端公钥参数)"
+
+Note right of S: 收到参数，直接算出 Session Key<br/>后续消息直接加密发送！
+S->>C: "Server Hello + Key Share<br/>(Random_S + 服务端公钥参数)"
+
+Note right of S: 以下消息全部被加密 {Encrypted}
+S-->>C: "{Encrypted Extensions}"
+S-->>C: "{CertificateRequest (可选)}"
+S-->>C: "{Certificate + CertificateVerify}"
+S-->>C: "{Finished}"
+
+Note left of C: 验证证书与签名<br/>握手结束
+C-->>S: "{Finished}"
+
+Note over C,S: === 数据传输 ===
+C->>S: "Application Data (HTTP Request)"
+S->>C: "Application Data (HTTP Response)"
+```
+
+C：客户端
+S：服务端
+
+- **快速握手**：
+
+C：（Client Hello）客户端在第一条消息中不仅发送TLS版本号、随机数和支持的密码套件列表，还提前猜测一个服务器可能支持的密钥交换算法（如 X25519），并附上自己的 “密钥共享”（Key Share） 参数（即临时的公钥）。
+
+S:（Server Hello）服务器收到后，如果支持客户端猜测的算法，则在 Server Hello 中立即附上自己的 “密钥共享” 参数。此时，双方在第一个消息往返后就已经可以计算出共享的预备主密钥。
+
+S:(EncryptedExtensions)服务器发送加密的扩展信息。包含所有不需要认证但需要加密的扩展。例如，支持的应用层协议、支持的压缩算法、支持的加密算法等。
+
+S:(CertificateRequest)服务器可能需要客户端证书。如果需要，则发送 CertificateRequest 消息。
+
+S:(Certificate + CertificateVerify)服务器发送证书链和签名。
+
+S:(Finished)服务器发送握手消息的 Hash 值。
+
+C:(Finished)客户端验证握手消息的 Hash 值。
+
+C:(ChangeCipherSpec)客户端发送通知消息，通知服务端切换加密。
+
+C:(ApplicationData)客户端发送应用层数据。
+
+S:(ChangeCipherSpec)服务端发送通知消息，通知客户端切换加密。
+
+S:(ApplicationData)服务端发送应用层数据。
+
+- **数据传输**：
+
+C：发送HTTP请求。
+
+S：接收HTTP请求。
+
+### 使用TLS加密通信的数据经过处理的过程：
+
 ```mermaid
 flowchart TD
     subgraph A [TLS协议分层架构]
@@ -193,29 +249,6 @@ flowchart TD
     style A2 fill:#e1f5fe
     style A1 fill:#f3e5f5
 ```
-
-## TLS的交互过程
-### TLS握手
-
-TLS握手是建立安全连接的第一步。
-```mernaid
-```
-
-## 证书管理
-
-## 密钥交换
-
-## 证书链验证
-
-## 安全套接层协议协商
-
-## 应用层协议协商
-
-## 安全套接层连接建立
-
-## 数据传输
-
-## 安全套接层连接终止
 
 
 ## TLS的数据包
