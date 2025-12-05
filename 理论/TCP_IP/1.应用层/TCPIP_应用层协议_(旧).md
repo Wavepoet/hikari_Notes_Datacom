@@ -395,8 +395,6 @@ C: quit
 S: +OK PoP3 server signing cfEN @Paranoida
 ```
 
-
-
 ## **IMAP互联网邮件访问协议**
 
 它比POP复杂得多，IMAP为用户提供了**创建文件夹**、**在不同文件夹之间移动邮件**及在**远程文件夹中查询邮件的命令**，为此IMAP服务器维护了会话用户的状态信息
@@ -407,6 +405,7 @@ S: +OK PoP3 server signing cfEN @Paranoida
 - IMAP允许用户代理只获取报文的某些部分，例如可以只读取一个报文的首部,或一个多部分MIME报文的一部分。
 
 ## **POP3与IMAP区别**
+
 |  操作位置 | 操作内容 | IMAP | POP3 |
 | --- | --- | --- | --- |
 | 收件箱 | 阅读、标记、移动、删除邮件等 | 客户端与邮箱更新同步 | 仅客户端内 |
@@ -415,7 +414,6 @@ S: +OK PoP3 server signing cfEN @Paranoida
 | 草稿 | 保存草稿 | 客户端与邮箱更新同步 | 仅客户端内 |
 | 垃圾文件夹 | 接收误移入垃圾文件夹的邮件 | 支持 | 不支持 |
 | 广告邮件 | 接收被移入广告邮件夹的邮件 | 支持 | 不支持 |
-
 
 # **Telnet：终端网络**
 
@@ -435,7 +433,6 @@ A[终端]<--(本地字符集)-->B[Telenet客户端]
 B<--Internet（NVT字符集）-->C[Telenet客户端]
 C<--(远端字符集)-->D[终端驱动程序]
 ```
-
 
 ASCⅡ[字符集](https://baike.baidu.com/item/%E5%AD%97%E7%AC%A6%E9%9B%86/0?fromModule=lemma_inlink)包括95个可打印字符和33个控制码。当用户从本地键入普通字符时，NVT将按照其原始含义传送；当用户键入[**快捷键**](https://baike.baidu.com/item/%E5%BF%AB%E6%8D%B7%E9%94%AE/0?fromModule=lemma_inlink)（组合键）时，NVT将把它转化为特殊的**ASCⅡ字符**在网络上传送，并在其到达远地机器后转化为相应的控制命令。
 
