@@ -149,13 +149,14 @@ S：接收到``Client Hello``数据包。发送``Server Hello``包含:
 - ``Cipher Suites``中选择的加密算法。
 ```
 
-如果务器能找到可接受的参数集，但C中的信息不足以进行握手，S则会发送```Hello Retry Request```要求其补充信息。
+如果服务器能找到可接受的参数集，但C中的信息不足以进行握手，S则会发送```Hello Retry Request```要求其补充信息。
 
 - **第二阶段（的密钥交换）**：
 
 S：使用私钥签名发送``Server Certificate``数据包, 包含服务端的证书链。
 
 S：使用私钥签名发送``Server Key Exchange``数据包，生成ECDHE的椭圆曲线参数作为发给客户端**临时密钥**。这包含了生成密钥所需的“公钥部分”
+
 ```text
 - 私钥：Priv_{Server\_Eph}
 - 私钥：Priv_{Server\_Eph}
@@ -286,5 +287,3 @@ flowchart TD
     style A2 fill:#e1f5fe
     style A1 fill:#f3e5f5
 ```
-
-## TLS1.0, TLS1.1, TLS1.2，TLS1.3的区别
