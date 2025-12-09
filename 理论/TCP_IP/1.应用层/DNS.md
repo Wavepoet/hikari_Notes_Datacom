@@ -66,13 +66,13 @@ title DNS Header (12字节)
 ```mermaid
 packet-beta
 title DNS Header Flags (16位)
-0-1: "QR (查询/响应)"
-2-3: "Opcode (操作码)"
-4-5: "AA (权威回答)"
-6-7: "TC (截断)"
-8-9: "RD (期望递归)"
-10-11: "RA (递归可用)"
-12-15: "Z (保留)"
+0-1: "QR"
+2-3: "Opcode"
+4-5: "AA"
+6-7: "TC"
+8-9: "RD"
+10-11: "RA"
+12-15: "Z"
 ```
 
 - 事务ID(Transaction ID)
