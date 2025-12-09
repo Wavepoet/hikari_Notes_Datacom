@@ -135,7 +135,7 @@ DNS 响应的数量。
 
 | 可变 | 2B | 2B | 2B | 2B | 可变 |
 | --- | --- | --- | --- | --- | --- |
-| NAME(域名) | TYPE(类型) | CLASS（类） | TLL（生存时间） | RDLENGTH(资源数据长度) | RDATA(资源数据) | 
+| NAME(域名) | TYPE(类型) | CLASS（类） | TLL（生存时间） | RDLENGTH(资源数据长度) | RDATA(资源数据) |
 
 NAME（域名）：记录所关联的域名。
 

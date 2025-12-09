@@ -32,7 +32,7 @@ URL由3个主要的部分构成：**协议**，**服务器地址**和**具体地
 - 存有该资源所在的**服务器的名称**或**IP地址**(包括端口号);
 - 主机资源的**具体地址**
 
-### 格式：
+### 格式
 
 ```text
 scheme://host[:port#]/path/…/[;url-params][?query-string][#anchor]
@@ -57,7 +57,7 @@ Web上可用的每种资源都由一个通用资源标识符（URI）进行定�
 
 例如：
 
-[http://www.baidu.com](https://link.zhihu.com/?target=http%3A//www.baidu.com)是URL.http://www.baidu.com/index.html 是URL 同时也是URI。
+```http://www.baidu.com```是URL，```http://www.baidu.com/index.html```是URL 同时也是URI。
 
 所以，URL 就是 URI 的 定位。
 
@@ -119,11 +119,7 @@ Content-Length: 28
 
 ## **RESPONSE :响应**
 
-**HTTP响应**
-
-也由四个部分组成，分别是：
-
-**状态行、消息报头、空行和响应正文**
+**HTTP响应**也由四个部分组成，分别是：**状态行、消息报头、空行和响应正文**
 
 ```bash
 #状态行

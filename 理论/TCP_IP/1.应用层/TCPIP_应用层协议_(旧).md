@@ -438,9 +438,7 @@ ASCⅡ[字符集](https://baike.baidu.com/item/%E5%AD%97%E7%AC%A6%E9%9B%86/0?fro
 
 ## **telnet的C/S模式**
 
-telnet采用
-
-**客户端/服务器模式**
+telnet采用**客户端/服务器模式**
 
 。下图为telnet客户端和服务器连接图：
 
