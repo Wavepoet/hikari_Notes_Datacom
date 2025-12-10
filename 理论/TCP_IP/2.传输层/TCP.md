@@ -71,13 +71,44 @@ title TCP Header (20字节 + 选项)
 
 > 代表“完成”一词。该标志用于拆除使用上一个标志（SYN）创建的虚拟连接。
 
-### win流量控制
+### win 流量控制
 
 流量控制是一种TCP的可靠性传输机制，用于**控制发送方向接收方发送数据的速率**，以避免发送方发送的数据过多、过快而导致接收方无法及时处理和接收。
 
+```mermaid
+sequenceDiagram
+    participant S as 发送方
+    participant R as 接收方
+
+    Note over S,R: win = 2
+
+    S->>R: 数据包 1
+    S->>R: 数据包 2
+    Note right of S: 窗口已满(2/2)<br/>停止发送
+
+    R-->>S: ACK 1 (确认包1)
+    Note right of S: win = 1
+
+    S->>R: 数据包 3
+```
+
 ## **TCP三次握手**
 
-![image.png](attachment:e3c2722c-5ff1-4a30-865a-fb3d46dc7770:image.png)
+```mermaid
+sequenceDiagram
+    participant C as 客户端
+    participant S as 服务器
+
+    Note left of C: SYN_SENT
+    C->>S: SYN=1, seq(C)=J<br/>请求建立连接
+    Note right of S: SYN_RCVD
+
+    S-->>C: SYN=1, ACK=1 ack=J+1, seq(S)=K<br/>对客户端的SYN进行应答，并请求建立链接
+
+    Note left of C: ESTABLISHED
+    C->>S: ACK=1,ack=K+1
+    Note right of S: ESTABLISHED
+```
 
 - **第一次握手：**
 
@@ -103,7 +134,24 @@ title TCP Header (20字节 + 选项)
 
 ## **TCP四次挥手**
 
-![image.png](attachment:15a5d713-612d-4317-a5bd-828b60c1d747:image.png)
+```mermaid
+sequenceDiagram
+    participant C as 客户端
+    participant S as 服务器
+
+    %% 第一次挥手：客户端发送 FIN
+    C->>S: FIN=M<br/>请求断开连接
+
+    %% 第二次挥手：服务器发送 ACK
+    S->>C: ack=M+1<br/>对客户端的FIN进行确认应答
+
+    %% 第三次挥手：服务器发送 FIN
+    S->>C: FIN=N<br/>请求断开连接
+
+    %% 第四次挥手：客户端发送 ACK
+    %% 修正了原图中的错别字："争对" -> "对"
+    C->>S: ACK=1,ack=N+1<br/>对服务器的FIN进行确认应答
+```
 
 - **第一次挥手：** Client端发起挥手请求，向Server端发送标志位是FIN报文段，设置序列号seq，此时，Client端进入FIN_WAIT_1状态，这表示Client端没有数据要发送给Server端了。
 - **第二次分手：**Server端收到了Client端发送的FIN报文段，向Client端返回一个标志位是ACK的报文段，ack设为seq加1，Client端进入FIN_WAIT_2状态，Server端告诉Client端，我确认并同意你的关闭请求。
@@ -112,7 +160,46 @@ title TCP Header (20字节 + 选项)
 
 ## **结合状态图**
 
-![显示错误](attachment:b5f8c784-182e-4af5-881e-7e8150f2d43f:image5.png)
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    %% === 第一阶段：建立连接 (三次握手) ===
+    Note left of C: SYN_SENT<br/>( connect() )
+    Note right of S: LISTEN<br/>( listen() )
+    
+    C->>S: SYN seq=x
+
+    Note right of S: SYN_RCVD
+    S->>C: SYN seq=y, ACK=x + 1
+
+    Note left of C: ESTABLISHED
+    C->>S: ACK=y + 1
+    Note right of S: ESTABLISHED
+
+    %% === 第二阶段：数据传输 ===
+    Note left of C: ( write() )
+    C->>S: seq=x+1 ACK=y + 1
+    Note right of S: ( read() )
+
+    S->>C: ACK x + 2
+
+    %% === 第三阶段：断开连接 (四次挥手) ===
+    Note left of C: FIN_WAIT_1<br/>( close() )
+    C->>S: FIN seq=x+2 ACK=y + 1
+    
+    Note right of S: CLOSE_WAIT
+    S->>C: ACK x + 3
+
+    Note left of C: FIN_WAIT_2
+    S->>C: FIN seq = y + 1
+    
+    Note right of S: LAST_ACK<br/>( close() )
+    
+    Note left of C: TIME_WAIT
+    C->>S: ACK=y + 2
+```
 
 ## **TCP分段**
 
@@ -145,4 +232,3 @@ MSS是TCP用来限制应用层最大的发送字节数。当**TCP报文段的长
 ## **套接字 Socket（暂定）**
 
 套接字是通信的端点，是通信的两端点，通信的两端都要有套接字。
-
