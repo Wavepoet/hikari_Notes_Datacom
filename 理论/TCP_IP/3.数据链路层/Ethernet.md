@@ -109,3 +109,29 @@ title MAC地址：48bit
 在网络层上看数据的传输是从源IP发送到目标IP的过程，但实际上会经过多个物理接口的传输，这些物理接口都有一个物理地址，即MAC地址，接口通过MAC地址进行转发数据。即物理寻址。
 
 >三层负责虚拟寻址，二层负责物理寻址。
+
+## **ARP获取MAC**
+
+网络层地址（如IP地址）用于虚拟寻址，数据链路层（如MAC地址）用于物理寻址，每个节点的MAC地址都是固定的，IP地址不固定，所以需要进行MAC的物理寻址来确定物理主机的位置。ARP（地址解析协议）正是用于寻找MAC地址的。
+
+主机在对同网段IP的数据包进行二层封装时，发现没有目标IP对应的目标MAC地址时，会发送一个ARP请求包，请求目标MAC。ARP数据包以广播形式发送。
+
+非同网段IP的数据包，默认会向网关发送，没有网关MAC时也会发送ARP包向网关请求MAC。此时ARP包内的目标指向网关。
+
+ARP请求包：
+
+![image.png](数据链路层image/image3.png)
+
+包内会标识源MAC（Sender MAC addres），源IP（Sender IP addres），目标IP（Target IP address）和目标MAC（Tarhet MAC address），
+
+目标MAC会标记为全F（或者是全0），以表示未知。
+
+同网段内设备发现数据包后会查看APR数据包的目标IP，目标IP为自己则接受，不是自己则丢弃。
+
+当目标设备发现数据包后，会发送一个ARP包进行回应，把自己IP与MAC写入源IP与源MAC中，请求设备MAC与IP写入目标IP与目标MAC中，请求设备接受到数据包解封装后便获得了目标设备的MAC。
+
+ARP回应包：
+
+![image.png](数据链路层image/image4.png)
+
+Window可在cmd中输入arp -a命令查看本机的arp缓存。
