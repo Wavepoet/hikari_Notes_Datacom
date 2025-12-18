@@ -21,8 +21,6 @@ IPv6地址总长度为128比特，分为8组，每组4个十六进制数的形�
 
 ![image1.png](IPv6image/image1.png)
 
----
-
 ### **IPv6地址压缩**
 
 可以把每组前导的“0”都省略掉。
@@ -79,13 +77,42 @@ IPv6地址可以静态设定，DHCP设定。同时也可以随机生成。
 
 因为以太网MAC地址中第7位为1代表本地管理为0代表全球管理，在IPv6地址中的第7位为1代表全球管理，为0代表本地管理。关于全局与本地的含义（用于公网还是用于私网）相反，所以要将第七位反转，详见rfc5342文档。
 
-![image1.png]()
+![image2.png](IPv6image/image2.png)
 
 ---
 
 ## **IPv6地址类型**
 
-![image2.png]()
+```mermaid
+graph LR
+    %% 根节点
+    Root[IPv6编址]
+
+    %% 第一级分类
+    Root --> Multicast(组播)
+    Root --> Unicast(单播)
+    Root --> Anycast(任意播)
+
+    %% 组播分支
+    Multicast --> M1["分配的地址<br/>FF00::/8"]
+    Multicast --> M2["被请求节点地址<br/>FF02::1:FF00:0000/104"]
+
+    %% 单播分支
+    Unicast --> U1["未指定的回环地址<br/>::/128<br/>::1/128"]
+    Unicast --> U2["本地链路地址<br/>FE80::/10"]
+    Unicast --> U3["可聚合全球地址<br/>2001::/16<br/>2002::/16<br/>3FFE::/16"]
+    Unicast --> U4["本地站点地址<br/>FEC0::/10"]
+    Unicast --> U5["IPv4兼容地址<br/>::96"]
+
+    %% 任意播分支
+    Anycast --> A1["本地链路地址<br/>FE80::/10"]
+    Anycast --> A2["可聚合全球地址<br/>2001::/16..."]
+    Anycast --> A3["本地站点地址<br/>FEC0::/10"]
+
+    %% 样式调整（可选，增加可读性）
+    classDef main fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    class Root,Multicast,Unicast,Anycast main;
+```
 
 ### **单播地址**
 
