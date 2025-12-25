@@ -36,14 +36,14 @@
 IP 地址：
 
 |<—8位—>|<—8位—>|<—8位—>|<—8位—>|
-| --- | --- | --- | --- |
-| 192 | 168 | 1 | 1 |
+|  ---  |  ---  |  ---  |  ---  |
+|  192  |  168  |   1   |   1   |
 
-![image1](路由技术_image/image1.png)
+![image1.png](images/路由技术_image/image1.png)
 
 子网掩码：
 
-![image2](路由技术_image/image2.png)
+![image2.png](images/路由技术_image/image2.png)
 
 可表示为：192.168.1.1/24
 
@@ -79,7 +79,7 @@ IP 地址：
 
 - **分类图**
 
-![image.png](路由技术_image/image3.png)
+![image.png](images/路由技术_image/image3.png)
 
 | 0 | Reserved |
 | --- | --- |
@@ -343,7 +343,7 @@ graph TD
 
 ARP请求包：
 
-![image.png](路由技术_image/image4.png)
+![image.png](images/路由技术_image/image4.png)
 
 包内会标识源MAC（Sender MAC addres），源IP（Sender IP addres），目标IP（Target IP address）和目标MAC（Tarhet MAC address），
 
@@ -355,7 +355,7 @@ ARP请求包：
 
 ARP回应包：
 
-![image.png](路由技术_image/image4.png)
+![image.png](images/路由技术_image/image4.png)
 
 Window可在cmd中输入arp -a命令查看本机的arp缓存。
 
@@ -382,7 +382,7 @@ Window可在cmd中输入arp -a命令查看本机的arp缓存。
 
 当路由器收到一个ip数据包，路由器会根据数据包的ip地址查找FIB（转发表）找到最匹配的路由条目，将数据包根据路由条目所指示的出接口或下一跳转发。在路由转发中，网络层被分为了两个平面，分别是控制平面和转发平面。
 
-![image.png](路由技术_image/image6.png)
+![image.png](images/路由技术_image/image6.png)
 
 ### 控制平面
 
@@ -487,13 +487,13 @@ Window可在cmd中输入arp -a命令查看本机的arp缓存。
 
 协议路由表中以存放着各路由协议中的路由条目。
 
-![image7.png](attachment:48b9cda6-77e4-4062-8a8b-82c5ced4e758:image7.png)
+![image7.png](images/路由技术_image/image7.png)
 
 - **本地核心路由表**
 
 路由器对各个协议路由表进行路由优先级筛选并且汇众后得到本地核心路由表。一台路由器只有一个本地核心路由表，FIB根据本地核心路由表进行选举。
 
-![文本 AI 生成的内容可能不正确。](attachment:2892b99b-988a-491c-80d4-68fee911fdfe:image8.png)
+![image8.png](images/路由技术_image/image8.png)
 
 - **最长掩码匹配原则**
 
@@ -505,7 +505,7 @@ Window可在cmd中输入arp -a命令查看本机的arp缓存。
 
 数据平面，如果路由表每次转发都要进行选取，则会消耗大量资源，所以路由器会将已经选取后的条目下载到FIB中，路由器转发芯片根据FIB进行转发。
 
-![](attachment:a5222fbc-883b-45ca-8703-eeb7683e1388:image9.png)
+![image9.png](images/路由技术_image/image9.png)
 
 ### 迭代路由
 
@@ -531,7 +531,7 @@ Window可在cmd中输入arp -a命令查看本机的arp缓存。
 
 则向192.168.3.1转发。
 
-![image10.png](attachment:a8be8d40-d3a2-468b-aadc-aa2ecbf4f201:image10.png)
+![image10.png](images/路由技术_image/image10.png)
 
 flags例，D表示没有迭代路由，RD表示需要迭代路由
 
@@ -583,11 +583,14 @@ CIDR使用斜线法，**IP+掩码**的方式表示网络地址，替代传统的
 
 设备自动生成指向本地直连网络的路由
 
-![image11.png](attachment:bf649a1c-7e3f-4326-9773-9cb9c172e7da:image11.png)
+```mermaid
+graph LR
+A[AR-1（192.168.1.1）] --> B[AR-2（192.168.1.2）]
+```
 
 AR-1
 
-![image12.png](attachment:94dd59bb-49a2-4cec-91b7-65cfececd2b6:image12.png)
+![image11.png](images/路由技术_image/image11.png)
 
 静态路由(Static)
 
@@ -628,4 +631,3 @@ RIP，IGRP
 主要协议：
 
 IS-IS，OSPF
-

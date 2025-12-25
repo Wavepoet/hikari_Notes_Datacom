@@ -6,7 +6,7 @@ RIP是非常古早的路由协议，现如今应用较少，但学习RIP可以�
 
 RIPv1由RFC-1923定义，RIPv2由RFC-2453定义。
 
-![image1.png](attachment:0562f478-acd6-4847-9c0d-3fdebc51f0d3:image1.png)
+![image1.png](images/RIP_image/image1.png)
 
 - 距离矢量路由协议
 - IGP协议
@@ -51,14 +51,42 @@ RIPv2为无类路由协议，支持VLSM，支持聚合与CIDR
 
 ## **RIPv1数据报**
 
-![image.png](attachment:cc92c0f6-a147-47a8-8212-bb3356493804:image.png)
+```mermaid
+packet-beta
+title RIP Packet Format (RIP 数据包格式)
+0-7: "Command (命令)"
+8-15: "Version (版本)"
+16-31: "Must be Zero (必须为0)"
+32-47: "Address Family Identifier (地址族标识符)"
+48-63: "Must be Zero (必须为0)"
+64-95: "IP Address (IP地址)"
+96-127: "Must be Zero (必须为0)"
+128-159: "Must be Zero (必须为0)"
+160-191: "Metric (度量值)"
+```
 
 ## **RIPv2数据报**
 
-![image.png](attachment:a1d54990-5745-4473-b319-186b613ffc72:image.png)
+```mermaid
+packet-beta
+title RIPv2 Packet Format (RIPv2 数据包格式)
+0-7: "Command (命令)"
+8-15: "Version (版本)"
+16-31: "Must be Zero (必须为0)"
+32-47: "Address Family Identifier (地址族标识符)"
+48-63: "Must be Zero (必须为0)"
+64-95: "IP Address (IP地址)"
+96-127: "Subnet Mask (子网掩码)"
+128-159: "Next Hop (下一跳)"
+160-191: "Metric (度量值)"
+```
 
-![image.png](attachment:545c5309-60aa-45ce-84a7-35275d6f4d27:image.png)
+![image2.png](images/RIP_image/image2.png)
 
-## **毒性逆转**
+## 水平分割和毒性逆转
 
-## **水平分割**
+**水平分割**和**毒性逆转**是RIP中的两大防环机制。
+
+### **水平分割**
+
+### **毒性逆转**
