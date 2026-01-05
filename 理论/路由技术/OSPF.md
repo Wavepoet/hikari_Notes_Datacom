@@ -759,11 +759,11 @@ packet-beta
     224-255: "...... (以此循环)"
 ```
 
-**Link State ID**
+- **Link State ID**
 
 生成LSA的Router ID
 
-**flags**
+- **flags**
 
 仅有3bit有用。
 
@@ -773,11 +773,11 @@ E：External，1bit，如果产生此LSA的路由器是ASBR，则置为1。
 
 B：Border，1bit，如果产生此LSA的路由器是ABR，则置为。
 
-**# Links**
+- **# Links**
 
 这条LSA的所描述的链路信息数量。
 
-**Link ID**
+- **Link ID**
 
 根据链路类型不同而变化。
 
@@ -789,7 +789,7 @@ B：Border，1bit，如果产生此LSA的路由器是ABR，则置为。
 
 4：虚连接中对端的Router ID。
 
-**Link Data**
+- **Link Data**
 
 连接数据，其值取决于连接的类型：
 
@@ -799,7 +799,7 @@ stub网络：子网掩码；
 
 其它连接：路由器接口的IP地址。
 
-**Type**
+- **Type**
 
 路由器连接的基本描述：
 
@@ -811,15 +811,15 @@ stub网络：子网掩码；
 
 4：虚拟链路。
 
-**#TOS**
+- **#TOS**
 
 服务类型ToS（Type of Service）数量。
 
-**Metric**
+- **Metric**
 
 链路的开销值。
 
-**TOS**
+- **TOS**
 
 服务类型ToS
 
@@ -835,69 +835,96 @@ stub网络：子网掩码；
 
 RFC 2328移除了对TOS的支持，LSA1现在仅保留默认的TOS 0，即普通路由。其他TOS字段被忽略。
 
-**TOS metric**
+- **TOS metric**
 
 和指定TOS值相关联的度量。
 
 ### Network LSA（LSA 2）
 
-![](attachment:0d0a7c39-cd31-44be-ab95-f271c036e92b:image18.png)
+![image14.png](images/OSPF_image/image14.png)
 
-![image.png](attachment:4b52634a-1635-45ac-b38f-1826d5662a7e:image.png)
+```mermaid
+packet-beta
+0-31: "Network Mask"
+32-63: "Attached Router"
+64-95: "......"
+```
 
-**Link State ID**
+- **Link State ID**
 
 DR的接口IP地址。
 
-**Network Mask**
+- **Network Mask**
 
 该广播网或NBMA网络地址的掩码。
 
-**Attached Router**
+- **Attached Router**
 
 连接在同一个网络上的所有设备的Router ID，也包括DR的Router ID。
 
 ### Summary LSA（LSA 3）（LSA 4）
 
-![](attachment:5fc9b201-e683-4309-860a-9d8316be7143:image19.png)
+![images15.png](images/OSPF_image/image15.png)
 
-![image.png](attachment:7ff0ce82-02c6-4203-baf3-39da2ce67aa8:image.png)
+```mermaid
+packet-beta
+0-31: "Network Mask (网络掩码)"
+32-39: "0 (保留位)"
+40-63: "Metric (路由开销)"
+64-71: "TOS (服务类型)"
+72-95: "TOS Metric (TOS 路由开销)"
+96-127: "...... (后续条目)"
+```
 
-**Link State ID**
+- **Link State ID**
 
 通告的网络地址。
 
-**Netwrk Mask**
+- **Netwrk Mask**
 
 该广播网或NBMA网络地址的掩码。
 
-**metric**
+- **metric**
 
 到目的地址的路由开销。
 
-**TOS**
+- **TOS**
 
 服务类型ToS。
 
-**TOS metric**
+- **TOS metric**
 
 和指定ToS值相关联的度量。
 
 ### Autonomous System External LSA（LSA 5）
 
-![](attachment:1dd2ca60-3b9a-4ee8-aa24-92fb07cd6886:image20.png)
+![image16.png](images/OSPF_image/image16.png)
 
-![image.png](attachment:67c18faf-684a-4c70-8c3f-d8125563c096:image.png)
+```mermaid
+packet-beta
+0-31: "Network Mask (网络掩码)"
+32: "E"
+33-39: "0 (保留)"
+40-63: "metric (路由开销)"
+64-95: "Forwarding address (转发地址)"
+96-127: "External Route Tag (外部路由标记)"
+128: "E"
+129-135: "TOS"
+136-159: "TOS metric"
+160-191: "Forwarding address"
+192-223: "External Route Tag"
+224-255: "......"
+```
 
-**Link State ID**
+- **Link State ID**
 
 通告的网络地址。
 
-**Network Mask**
+- **Network Mask**
 
 通告的目的地址的掩码。
 
-**E**
+- **E**
 
 外部度量值类型：
 
@@ -905,37 +932,51 @@ DR的接口IP地址。
 
 1：第二类外部路由。
 
-**metric**
+- **metric**
 
 到目的地址的路由开销。
 
-**Forwarding Address**
+- **Forwarding Address**
 
 到所通告的目的地址的报文将被转发到这个地址。
 
-**External Route Tag**
+- **External Route Tag**
 
 添加到外部路由上的标记。OSPF本身并不使用这个字段，它可以用来对外部路由进行管理。
 
-**TOS**
+- **TOS**
 
 服务类型。RFC 2328移除了对TOS的支持，LSA5现在仅保留E位。
 
-**TOS metric**
+- **TOS metric**
 
 和指定TOS值相关联的度量。
 
 ### NSSA External LSA（LSA 7）
 
-![](attachment:f210e959-a5b8-4a89-9524-2be65e96af13:image21.png)
+![umage17.png](images/OSPF_image/image17.png)
 
-![image.png](attachment:41dc3fa9-1fc1-4bc5-a057-688e46e256b3:image.png)
+```mermaid
+packet-beta
+0-31: "Network Mask (网络掩码)"
+32: "E"
+33-39: "0 (保留位)"
+40-63: "Metric (路由开销)"
+64-95: "Forwarding Address (转发地址)"
+96-127: "External Route Tag (外部路由标记)"
+128: "E"
+129-135: "TOS"
+136-159: "TOS Metric"
+160-191: "Forwarding Address (TOS 专用)"
+192-223: "External Route Tag (TOS 专用)"
+224-255: "...... (后续 TOS 块)"
+```
 
-**Network Mask**
+- **Network Mask**
 
 外部路由的网络掩码。
 
-**External Type**
+- **External Type**
 
 仅有E位有效，外部路由类型。
 
@@ -943,39 +984,29 @@ DR的接口IP地址。
 
 0：Type 1外部路由（总Metric = 内部链路Cost + 外部Metric）。
 
-**Metric**
+- **Metric**
 
 外部路由的度量值。
 
-**Forwarding Address**
+- **Forwarding Address**
 
 转发地址，如果为**0.0.0.0**，则使用引入该路由的ASBR地址。
 
-**External Route Tag**
+- **External Route Tag**
 
 外部路由标记，用于策略路由或过滤。
 
-### 其他：
+### 其他
 
 暂时没写到，以及笔记被word吞了
 
 参考：
 
-ensp实验
-
-[ospf_末梢.7z](attachment:c00c1d8b-89dd-4d46-b704-1f7b7cc4abe8:ospf_末梢.7z)
-
-数据包
-
-[LSA NSSA-1.pcapng](attachment:e2ab4bf9-f615-4e2a-9444-6b8b064e0d1b:LSA_NSSA-1.pcapng)
-
-[LSA NSSA-2.pcapng](attachment:bc45dae0-30d7-44ac-85fd-32e4fffd60ce:LSA_NSSA-2.pcapng)
-
 文档
 
-https://www.rfc-editor.org/rfc/rfc1583
+[RFC1583](https://www.rfc-editor.org/rfc/rfc1583)
 
-https://www.rfc-editor.org/rfc/rfc2328
+[RFC2328](https://www.rfc-editor.org/rfc/rfc2328)
 
 [OSPF LSA格式 - CloudEngine S5700, S6700 V600R022C00 配置指南-IP路由 - 华为](https://support.huawei.com/enterprise/zh/doc/EDOC1100278276/dd80564e)
 
@@ -985,22 +1016,41 @@ https://www.rfc-editor.org/rfc/rfc2328
 
 - **触发更新**
 
-> 产生这条LSA的路由器发现这条LSA的状态发生了变化，会产生触发更新的行为，此时LSA的seq + 1 ,chksum 重新计算、 ls age置0。
-> 
+ 产生这条LSA的路由器发现这条LSA的状态发生了变化，会产生触发更新的行为，此时LSA的seq + 1 ,chksum 重新计算、 ls age置0。
+
 - **低频率周期性更新**
 - 一定周期内路由器会把LSDB中的所有内容发送更新一遍。（默认每30分钟1周期 ）此时LSA的seq + 1 ，chksum重新计算、Ls age置0。
 - LSA在一段时间内（默认是30分钟）没有被更新时，会被认为是过时的，并从链路状态数据库中删除。
 - **LSA的更新过程**
 - 如果接收到LSA比自己的新：
 
-> 确认-->泛洪分享-->SPF计算路由表
-> 
+确认-->泛洪分享-->SPF计算路由表
+
 - 如果接收到的LSA比自己的旧：
 
-> 将自己的LSA发送给send LSU(发来LSA的设备)
-> 
+将自己的LSA发送给send LSU(发来LSA的设备)
 
-![](attachment:51fd868e-7c41-4ac0-8342-01239e72f142:image25.png)
+```mermaid
+flowchart TD
+    Start([收到 LSA]) --> InDB{在数据库中?}
+    
+    %% 分支 1：数据库中没有
+    InDB -- 否 --> AddDB[添加到数据库]
+    AddDB --> LSAck[发送 LSAck 确认]
+    LSAck --> Flood[泛洪 LSA]
+    Flood --> SPF[运行 SPF 计算]
+    SPF --> End([结束])
+
+    %% 分支 2：数据库中已有
+    InDB -- 是 --> SeqSame{序列号相同?}
+    SeqSame -- 是 --> Ignore[忽略 LSA]
+    Ignore --> End
+
+    SeqSame -- 否 --> SeqHigher{序列号更高?}
+    SeqHigher -- 是 --> AddDB
+    SeqHigher -- 否 --> SendNew[发送较新 LSU 给源端]
+    SendNew --> End
+```
 
 - **辨别LSA的新旧**
 - seq 越大越新
@@ -1013,11 +1063,11 @@ https://www.rfc-editor.org/rfc/rfc2328
 
 LSDB由多个LSA构成。
 
-![](attachment:619c3edc-dba1-41dc-9790-74993c450a96:image26.png)
+![images18.png](images/OSPF_image/image18.png)
 
 查看LSDB里的内容与LSA头部里的内容高度相似，这里就不再赘述了。
 
-**Metric（度量值）**
+## **Metric（度量值）**
 
 表示**到达目标网络的代价即**Cost。
 
@@ -1035,12 +1085,11 @@ CSOT=10^8/BW(bps)=100Mbps/BW=接口带宽参考值/接口带宽。
 
 - **出站接口**
 
-> 路由器发送数据包的接口
-> 
+路由器发送数据包的接口
+
 - **入站接口**
 
-> 路由器接收数据包的接口
-> 
+路由器接收数据包的接口
 
 COST的默认最小单位为个位所有小于1的数都会被约为1，可以使用命令修改，但一经修改所有的OSPF路由器都需要修改。
 
@@ -1056,8 +1105,7 @@ COST的默认最小单位为个位所有小于1的数都会被约为1，可以�
 
 - **外部通信量**
 
-> OSPF域内的路由器与OSPF区域外或另一个自治系统内的路由器之间交换数据包构成的通信量
-> 
+OSPF域内的路由器与OSPF区域外或另一个自治系统内的路由器之间交换数据包构成的通信量
 
 ## **OSPF 4种末梢区域**
 
@@ -1068,7 +1116,9 @@ COST的默认最小单位为个位所有小于1的数都会被约为1，可以�
 标准区域是OSPF协议中的正常传输数据的区域
 
 - 标准区域能够接收和处理所有类型的LSA
+
 1. **stub (末梢区域，存根区域)**
+
 - LSA：
 - 不允许LSA4，LSA5泛洪（不支持外部路由）
 - 允许接收和传递LSA1、LSA2、SA3，明细LSA3（允许骨干区域的LSA3进入，同时ABR会自动下发3类缺省路由。）
@@ -1076,7 +1126,9 @@ COST的默认最小单位为个位所有小于1的数都会被约为1，可以�
 - stub不能是骨干区域
 - stub不支持部署vink（虚拟链路）
 - ABR会生成一条默认路由（通常是0.0.0.0/0）来代替外部路由，使得末梢区域内的路由器能够通过这条默认路由来访问外部网络。
+
 1. **Totally stubby（完全末梢区域，完全存根区域）**
+
 - LSA：
 - 不允许LSA4，LSA5泛洪（不支持外部路由）
 - 除一条LSA3的默认路由通告外，没有LSA3、4、5、通告
@@ -1087,6 +1139,7 @@ stub区域和Totally stub区别
 区别在于把区域内的明细路由LSA3替换为缺省LSA3， Totally stubby内的路由器只需要维护一个默认的出口路由，减少LSDB的规模。（ABR不仅生成默认路由来代替外部路由，还将区域间路由也替换为默认路由）
 
 1. **NSSA（非纯末梢区域）**
+
 - LSA：
 - 通过ABR把接收的LSA4，LSA5转换为缺省的LSA7
 - nssa区域存在LSA1，LSA2，明细LSA3和缺省LSA7和明细LSA7
@@ -1095,18 +1148,18 @@ stub区域和Totally stub区别
 - nssa不能是骨干区域
 - nssa不支持部署vlink（虚拟链路）
 - nssa与stub不同的是能够引入外部路由，引入的外部路由信息通过LSA 7来传播
+
 1. **Totally nssa（非纯完全末梢区域）**
+
 - LSA：
 - 通过ABR生成缺省LSA7取代原本LSA4，LSA5 ，NSSA区域不包含明细LSA3
 - 通过ABR把接收的LSA4，LSA5转换为缺省的LSA7
 - 由于LSA7仅存于nssa区域，由ABR执行LSA7转换LSA5传至其他区域
 - Totally nssa属于nssa的一种，nssa的简化路由版，**拥有nssa的特点**。
 
-> NSSA区域与Totally nssa区域区别
-> 
-> 
-> 在NSSA基础上，把区域内的明细路由LSA3替换为缺省LSA3 与外部接收的缺省lsa7共存。减少LSDB的规模（缺省lsa3>缺省lsa7）（ABR不仅将LSA 7转换为LSA 5并注入到其他区域中，还将区域间路由替换为默认路由）
-> 
+NSSA区域与Totally nssa区域区别
+
+在NSSA基础上，把区域内的明细路由LSA3替换为缺省LSA3 与外部接收的缺省lsa7共存。减少LSDB的规模（缺省lsa3>缺省lsa7）（ABR不仅将LSA 7转换为LSA 5并注入到其他区域中，还将区域间路由替换为默认路由）
 
 ## **虚链路技术**
 
@@ -1123,27 +1176,27 @@ stub区域和Totally stub区别
 
 - **非骨干区域未能与骨干区域相连：**
 
-![](attachment:81c28242-37df-40f5-864e-2d2962539447:image27.png)
+![images20.png](images/OSPF_image/image20.png)
 
 ↓虚链路↓
 
-![](attachment:43b9390c-d325-4ad0-99f4-3e03f24559b0:image28.png)
+![images19.png](images/OSPF_image/image19.png)
 
 在进行OSPF虚链路扩展后，Area1被虚拟成了骨干区域，而这时的AR3等同于连接Area0和Area2的ABR（因为有一个virtual接口在区域0，因此变成了ABR），所以可以将自己所有的LSA发进区域2。在扩展OSPF虚链路时，是通过连接R2（ABR）与R3（ABR）的Router-ID 来建立的。
 
 - **骨干区域未能与骨干区域相连：**
 
-![](attachment:4d19e3b0-8445-46ad-ab78-ca4d60aa60dd:image29.png)
+![images20.png](images/OSPF_image/image20.png)
 
 ↓虚链路↓
 
-![](attachment:0b3d9369-6340-4304-9705-bfa40a42efc2:image30.png)
+![images21.png](images/OSPF_image/image21.png)
 
 在经过OSPF虚链路将Area1也扩展为骨干区域后，可见所有的区域都变成了骨干区域，从而使网络中骨干区域能够收到另外一边被分割的骨干区域的路由,( 把发生“分割”的骨干区域合并)并且最后骨干区域自己的路由都为Intra-Area Route（区域内路由），但Area 1与骨干区域的路由将仍然为O IA（区域间路由）。
 
 - **逻辑冗余：**
 
-![](attachment:2e6ccf90-84a5-4747-b3df-f3e7081b8764:image31.png)
+![images22.png](images/OSPF_image/image22.png)
 
 图中，存在次优路径及骨干区域不健壮的问题。
 
@@ -1170,7 +1223,7 @@ R3和R4间在Areal.上创建Vlink，作用有两个，一个作用是可以用�
 
 OSPF认证的主要作用是防止不受信任的设备引入有害路由信息，影响网络的安全性和稳定性。
 
-### 认证类型：
+### 认证类型
 
 两台OSPF路由器需要同样认证才可成为邻居。
 
@@ -1180,17 +1233,15 @@ OSPF认证的主要作用是防止不受信任的设备引入有害路由信息�
 
 - **明文认证：**
 
-> 使用明文密码进行认证，密码在传输过程中不被加密，因此存在被窃听的风险。
-> 
+使用明文密码进行认证，密码在传输过程中不被加密，因此存在被窃听的风险。
+
 - **密文认证：**
 
-> 密文认证使用加密方式传输密码，提高了安全性。常见的密文认证方式包括MD5和SHA-HMAC等哈希算法，它们通过对OSPF消息进行哈希运算，生成固定长度的认证码或哈希值，从而确保消息的完整性和真实性。
-> 
-> 
-> MD5和SHA-HMAC详见VPN
-> 
+密文认证使用加密方式传输密码，提高了安全性。常见的密文认证方式包括MD5和SHA-HMAC等哈希算法，它们通过对OSPF消息进行哈希运算，生成固定长度的认证码或哈希值，从而确保消息的完整性和真实性。
 
-### 认证方式：
+MD5和SHA-HMAC详见VPN
+
+### 认证方式
 
 - **接口认证：**
 
@@ -1209,7 +1260,7 @@ OSPF认证的主要作用是防止不受信任的设备引入有害路由信息�
 
 接口认证优先级大于区域认证。
 
-|  | 密钥 | 启用 |
+| --- | 密钥 | 启用 |
 | --- | --- | --- |
 | 接口认证 | 接口 | 接口 |
 | 区域认证 | 接口 | 进程 |
@@ -1231,7 +1282,7 @@ SPF算法是一种单源最短路径算法，即从指定的源点出发，求�
 
 先确认距离最短的下一跳,再更新下一跳的邻居.
 
-### 构建SPF树：
+### 构建SPF树
 
 SPF树是一种有向无环图（DAG），与stp（生成树）作用相似，以一个源节点为根，创造出一个无环的拓扑结构。
 
@@ -1243,11 +1294,10 @@ SPF树中只有单项最短路径，保证了OSPF区域内不会出现环路。
 
 1. **初始：**
 
-> 创建一个候选节点列表，用于存储待处理的节点。
-> 
-> 
-> 路由器以自己为根，检查Type1 LSA，对非StubNet类的Link，将Link ID加入候选列表并记录路由开销。
-> 
+创建一个候选节点列表，用于存储待处理的节点。
+
+路由器以自己为根，检查Type1 LSA，对非StubNet类的Link，将Link ID加入候选列表并记录路由开销。
+
 1. **迭代构建：**
     1. 通过Type1 LSA中的Cost，选取一个距离根最近（Cost最小）的节点（路由器端口）添加到SPF树中，并从候选表中删除。
     2. 查询Type2 LSA，通过已确定最短路径的节点，更新其邻居节点的开销值。具体地，对于每个邻居节点，计算从源点通过当前节点到达邻居节点的总开销，并与邻居节点当前的Cost进行比较，将Cost最小的添加到SPF树上，并从候选表中删除。如果节点在SPF树上已存在则忽略该节点。
@@ -1255,7 +1305,7 @@ SPF树中只有单项最短路径，保证了OSPF区域内不会出现环路。
 
 重复上述过程，直到候选节点列表为空，即所有节点都已加入SPF树中。
 
-### 计算最优路由：
+### 计算最优路由
 
 将 Type1 LSA和Type2 LSA中的路由信息以叶子节点的形式附加在对应的OSPF路由器上计算最优路径。已经出现的路由信息不会再添加到SPF树上。
 
