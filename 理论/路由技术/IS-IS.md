@@ -197,9 +197,23 @@ PSNP用于确认或请求重新发送LSP。（相当于ospf的LSAck）
 
 ### IS-IS报头
 
-![文本 AI 生成的内容可能不正确。](attachment:8ccc66d6-9280-4eb5-98f6-3ada3830bdc4:image3.png)
+![image4.png](images/IS-IS_image/image4.png)
 
-![image.png](attachment:d75caad5-e094-417f-8ae8-b6d524ac3293:image.png)
+```mermaid
+packet-beta
+title IS-IS Common Header
+0-7: "Intradomain Routing Protocol Discriminator"
+8-15: "Length Indicator"
+16-23: "Version/Protocol ID Extension"
+24-31: "ID Length"
+32: "R"
+33: "R"
+34: "R"
+35-39: "PDU Type"
+40-47: "Version"
+48-55: "Reserved"
+56-63: "Maximum Area Addresses"
+```
 
 - **Intradomain Routing Protocol Discriminator**
 
@@ -235,9 +249,20 @@ PDU的类型。IS-IS PDU共有9种类型，详细信息请参考下表。
 
 ### Hello PDU
 
-![](attachment:784826d2-8498-4b8b-8c7a-4d7f3140cef1:image4.png)
+![image5.png](images/IS-IS_image/image5.png)
 
-![image.png](attachment:571f17d5-a949-4b3f-be78-ec57884f1815:image.png)
+```mermaid
+packet-beta
+title IS-IS LAN Hello PDU Body
+0-7: "Circuit Type"
+8-55: "Source ID (System ID)"
+56-71: "Holding Time"
+72-87: "PDU Length"
+88-95: "Priority"
+96-111: "Reserved"
+112-167: "LAN ID"
+168-223: "TLV Fields (Variable) (认证、IP 地址、邻居信息等)"
+```
 
 - **Circuit Type**
 
@@ -265,11 +290,20 @@ PDU的总长度，单位是字节。
 
 ### LSP
 
-![形状 AI 生成的内容可能不正确。](attachment:929badad-29e3-4506-a50a-0d9d99d98f5d:image5.png)
+![image6.png](images/IS-IS_image/image6.png)
 
-![文本 AI 生成的内容可能不正确。](attachment:22023720-23d0-4f3a-8be1-723f41dc957f:image6.png)
-
-![image.png](attachment:a823c2e3-a7a4-4a25-8d34-53c97182073b:image.png)
+```mermaid
+packet-beta
+title IS-IS LAN Hello PDU
+0-7: "Circuit Type (1B)"
+8-55: "Source ID (6B)"
+56-71: "Holding Time (2B)"
+72-87: "PDU Length (2B)"
+88-95: "Priority (1B)"
+96-111: "Reserved / Padding (2B)"
+112-167: "LAN ID (7B)"
+168-223: "TLV Fields (Variable)"
+```
 
 - **PDU Length**
 
@@ -323,9 +357,20 @@ LSP的校验和。
 
 - ***CSNP***
 
-![文本 AI 生成的内容可能不正确。](attachment:b2fef8d4-457b-4c34-888a-b39ac71f2306:image7.png)
+![image7.png](images/IS-IS_image/image7.png)
 
-![image.png](attachment:8fe18300-5892-46e2-80c0-5a505c2dd87c:image.png)
+```mermaid
+packet-beta
+title IS-IS LAN Hello PDU
+0-7: "Circuit Type (1B)"
+8-55: "Source ID (6B)"
+56-71: "Holding Time (2B)"
+72-87: "PDU Length (2B)"
+88-95: "Priority (1B)"
+96-111: "Reserved / Padding (2B)"
+112-167: "\LAN ID (7B)"
+168-223: "TLV Fields (Variable)"
+```
 
 - **Source ID**
 
@@ -341,7 +386,18 @@ CSNP报文中最后一个LSP的ID值。
 
 - ***PSNP***
 
-![image.png](attachment:941b41ab-ee8e-4887-8c13-8dd58756c962:image.png)
+```mermaid
+packet-beta
+title IS-IS LAN Hello PDU Body
+0-7: "Circuit Type"
+8-55: "Source ID (System ID)"
+56-71: "Holding Time"
+72-87: "PDU Length"
+88-95: "Priority"
+96-111: "Reserved"
+112-167: "LAN ID"
+168-223: "TLV Fields (Variable)"
+```
 
 ---
 
@@ -367,13 +423,53 @@ MA网络必须进行三次握手。
 
 只要路由器收到对端发来的hello报文，就单方面宣布邻居为UP状态，建立邻居关系
 
-![](attachment:67934c6d-8268-4328-8607-4170290089ab:image8.png)
+```mermaid
+sequenceDiagram
+    title 两次握手 (Two-way Handshake)
+    
+    participant R1 as SYS ID 0000.0000.0001
+    participant R2 as SYS ID 0000.0000.0002
+
+    %% 右侧路由器向左侧发送 Hello
+    R2->>R1: Point-to-point IIH
+    Note left of R1: 状态: UP
+
+    %% 左侧路由器向右侧发送 Hello
+    R1->>R2: Point-to-point IIH
+    Note right of R2: 状态: UP
+```
 
 - **三次握手机制：**
 
 此方式通过三次发送P2P的ISIS HELLO PDU最终建立起邻居关系，类似广播邻居关系的建立
 
-![](attachment:a317e91b-abad-4f12-a1b7-be3106c0308f:image9.png)
+```mermaid
+sequenceDiagram
+    autonumber
+    
+    box rgb(240, 248, 255) P2P 链路 (两次握手)
+    participant A1 as R1
+    participant B1 as R2
+    end
+    
+    box rgb(255, 250, 240) LAN 广播网 (三次握手)
+    participant A2 as R3
+    participant B2 as R4
+    end
+
+    %% P2P 流程
+    Note over A1,B1: 收到即 UP
+    A1->>B1: Hello
+    B1->>A1: Hello
+    
+    %% LAN 流程
+    Note over A2,B2: 需确认看到自己
+    A2->>B2: Hello (邻居:无)
+    B2->>A2: Hello (邻居:R3)
+    Note left of A2: UP
+    A2->>B2: Hello (邻居:R4)
+    Note right of B2: UP
+```
 
 RTA广播LAN IIH，RTB收到后将自己和RouterA的邻居状态标识为**Initial**，并发送带有RTA邻居的LAN IIH。
 
@@ -389,7 +485,34 @@ P2P网络建立邻居后会立即发送CSNP给对端，对端进行判别如果�
 
 LSDB同步后用SPF算法进行路由计算。
 
-![](attachment:fe56c510-7686-438e-aa72-72d8b81af7af:image10.png)
+```mermaid
+sequenceDiagram
+    participant RTA
+    participant RTB
+
+    Note over RTA,RTB: P2P 网络
+
+    participant CNSP
+    participant LSP
+    participant PSNP
+
+    CNSP->>RTB: 1. CNSP A.00-00
+    PSNP->>RTA: 2. PSNP A.00-00
+
+    LSP->>RTB: 3. LSP A.00-00
+
+    Note right of PSNP: PSNP 丢失
+    PSNP--xRTA: 4. PSNP A.00-00
+
+    Note left of LSP: 重传时间超时
+    LSP->>RTB: 3. LSP A.00-00 (重传)
+
+    Note right of PSNP: 重传 PSNP
+    PSNP->>RTA: 4. PSNP A.00-00
+
+```
+
+![image8.png](images/IS-IS_image/image8.png)
 
 - **MA网络**
 
