@@ -526,8 +526,6 @@ DIS会周期性（默认10s）发送CSNP，如果刚才的LSP没收到，下一�
 
 LSDB同步后用SPF算法进行路由计算。
 
-![](attachment:e2dac868-4c38-430a-9f75-fda540563438:image11.png)
+![image9.png](images/IS-IS_image/image9.png)
 
 ## **LSU**
-
-懒
