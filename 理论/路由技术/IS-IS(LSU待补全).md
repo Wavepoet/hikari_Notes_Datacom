@@ -522,34 +522,6 @@ DIS会周期性（默认10s）发送CSNP，如果刚才的LSP没收到，下一�
 
 LSDB同步后用SPF算法进行路由计算。
 
-<<<<<<< HEAD:Datacom/理论/路由技术/IS-IS.md
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Other as RTA/RTC
-    participant MA as MA网络 (总线)
-    participant DIS as RTB (DIS)
-
-    note over Other, DIS: 1. 新LSP泛洪
-    Other->>MA: 发送 分片LSP (C.00-00, C.00-01)
-    
-    note over Other, DIS: 2. 周期性数据库同步
-    DIS->>MA: 发送 CSNP (摘要: A, B, C)
-    
-    note over Other, DIS: 3. 请求缺失信息
-    Other->>MA: 发送 PSNP (请求: B.00-00...)
-    
-    note over Other, DIS: 4. 响应请求
-    DIS->>MA: 发送 伪节点LSP (详细: A, B)
-    
-    note over Other, DIS: 5. 计算路由
-```
-
-## **LSU**
-
-懒
-=======
 ![image9.png](images/IS-IS_image/image9.png)
 
 ## **LSU**
->>>>>>> 8244f9dd50ae98d69e595fddfe28244d1bae01e2:Datacom/理论/路由技术/IS-IS(LSU待补全).md

@@ -45,13 +45,13 @@ IXP又称IXes，IXPs和IX，互连网的基础设施之一，用于将多个不�
 
 - **早期BGP版本**
 
-1. **BGP-1** 
+1. **BGP-1**
     - **时间**：1989年 **RFC文档**：RFC 1105
 
-2. **BGP-2** 
+2. **BGP-2**
     - **时间**：1990年 **RFC文档**：RFC 1163
 
-3. **BGP-3** 
+3. **BGP-3**
     - **时间**：1991年 **RFC文档**：RFC 1267
 
 - **BGP-4（现在主流）**
@@ -171,18 +171,21 @@ sequenceDiagram
 | 报文 | 类型 | 用处 |
 | --- | --- | --- |
 | **Open** | **Type=1** | 用于协商参数、建立BGP对等体，TCP三次握手正常建立之后，才会发送Open报文。 |
-| **Update** | **Type=2** | 用于更新传递路由信息。 
- |
-| **Notification** | **Type=3** | 当BGP检测到 错误时，会用Notification报文报告错误信息，断开邻居关系。
- |
+| **Update** | **Type=2** | 用于更新传递路由信息 |
+| **Notification** | **Type=3** | 当BGP检测到 错误时，会用Notification报文报告错误信息，断开邻居关系。 |
 | **Keepalive** | **Type=4** | 定期发送，用于维持BGP对等体关系，Keepalive报文格式中只包含报文头，没有附加其他任何字段。 |
 | **Route-Refresh（可选）** | **Type=5** | 路由刷新报文，让对方主动给我发送最新的，我所需要的路由信息。 |
 
 ### **BGP报头**
 
-![图片包含 图形用户界面 AI 生成的内容可能不正确。](attachment:d757ff2f-44dd-4172-90de-c3b6700cf4bd:image2.png)
+![image1.png](images/BGP_image/image1.png)
 
-![image.png](attachment:1e64977f-53cb-4a13-99f7-970747abbc38:image.png)
+```mermaid
+packet-beta
+0-127: "Marker (16 Bytes)"
+128-143: "Length (2 Bytes)"
+144-159: "Type (1 Byte + Padding/Reserved)"
+```
 
 - **Marker（标记）**
 
@@ -194,13 +197,21 @@ sequenceDiagram
 
 - **Type（类型）**
 
-标识报文类型，[BGP报文类型](about:blank#bgp%E6%8A%A5%E6%96%87%E7%B1%BB%E5%9E%8B)。
+标识报文类型，
 
 ### **Open报文**
 
-![文本 AI 生成的内容可能不正确。](attachment:40e3ad9d-7d7e-4aaa-943d-e30d4f6d1079:image3.png)
+![image2.png](images/BGP_image/image2.png)
 
-![image.png](attachment:9f9a2a11-0d6c-4f42-a3cb-ced942be4c45:image.png)
+```mermaid
+packet-beta
+0-7: "Version (1B)"
+8-31: "My AS (2B)"
+32-47: "Hold Time (2B)"
+48-79: "BGP Identifier (4B)"
+80-87: "Opt Parm Len (1B)"
+88-119: "Optional Parameters (Variable)"
+```
 
 - **Version**
 
@@ -222,15 +233,20 @@ BGP标识符，以IP地址形式发送，用于识别确定BGP路由器，类似
 
 用于发送路由的update报文
 
-![文本 AI 生成的内容可能不正确。](attachment:4329faa2-affb-4397-856b-23fbbb2192c8:image4.png)
-
-![文本 AI 生成的内容可能不正确。](attachment:06b4e355-34ec-4338-ba6c-bf0d17042b28:image5.png)
+![image3.png](images/BGP_image/image3.png)
 
 用于撤回路由的update报文。
 
-![文本 AI 生成的内容可能不正确。](attachment:dfae9c3c-5f38-456c-a35b-f6c239547771:image6.png)
+![image4.png](images/BGP_image/image4.png)
 
-![image.png](attachment:ac731393-37db-478b-9cb1-c1fe4508e5ed:image.png)
+```mermaid
+packet-beta
+0-15: "Withdrawn Routes Length (2B)"
+16-47: "Withdrawn Routes (Variable)"
+48-63: "Total Path Attribute Length (2B)"
+64-95: "Path Attributes (Variable)"
+96-127: "Network Layer Reachability Information (NLRI) (Variable)"
+```
 
 - **Withdrawn Routes Lenth**
 
@@ -243,10 +259,7 @@ BGP标识符，以IP地址形式发送，用于识别确定BGP路由器，类似
 编码格式为 <长度+前缀>
 
 > 长度（1字节）：前缀的掩码位数（0-32）。
-> 
-> 
 > 前缀（变长）：按前缀位数对齐到字节，不足补零。
-> 
 
 例如192.168.1.0/24，长度为24，前缀为192.168.1。
 
@@ -256,7 +269,7 @@ BGP标识符，以IP地址形式发送，用于识别确定BGP路由器，类似
 
 - **Path Attributes**
 
-路径属性包含路由的路径属性。每个属性由TLV三元组———类型（Type）、长度（Length）和值（Value）组成，详见[BGP路径属性](about:blank#bgp%E8%B7%AF%E5%BE%84%E5%B1%9E%E6%80%A7)。
+路径属性包含路由的路径属性。每个属性由TLV三元组———类型（Type）、长度（Length）和值（Value）组成，详见[BGP路径属性]。
 
 - **NLRI**
 
@@ -272,7 +285,7 @@ BGP标识符，以IP地址形式发送，用于识别确定BGP路由器，类似
 
 错误错误代码，定义错误的类型，非特定的错误类型用零表示。
 
-BGP错误码：https://blog.csdn.net/sj349781478/article/details/120256412
+BGP错误码：![关于BGP的notification错误码的解释](https://blog.csdn.net/sj349781478/article/details/120256412)
 
 - **Data**
 
@@ -356,8 +369,7 @@ Type：类型
 
 | **Ldle** | **开始准备TCP的连接并监视远程对等体，启用BGP时，要准备足够的资源** |
 | --- | --- |
-| **Connect** | **正在进行TCP连接，等待完成中，认证都是在TCP建立期间完成的。如果TCP连接建立失**
-**败则进入Active状态，反复尝试连接** |
+| **Connect** | **正在进行TCP连接，等待完成中，认证都是在TCP建立期间完成的。如果TCP连接建立失败则进入Active状态，反复尝试连接** |
 | **Active** | **TCP连接没建立成功，反复尝试TCP连接** |
 | **OpenSent** | **TCP连接已经建立成功，开始发送Open包，Open包携带参数协商对等体的建立** |
 | **OpenConfirm** | **参数、能力特性协商成功，自己发送Keepalive包，等待对方的Keepalive包** |
@@ -409,14 +421,14 @@ BGP通告遵循以下原则：
 
 1. **只发布最优且有效路由。**
 
-> 在BGP路由表中
-> 
-> - ：代表有效
-> 
-> >：代表最优
-> 
-> ![](attachment:af3ee858-4f44-41e1-b6d0-dca2ad3e153a:image13.png)
-> 
+在BGP路由表中
+
+- ：代表有效
+
+：代表最优
+
+![](attachment:af3ee858-4f44-41e1-b6d0-dca2ad3e153a:image13.png)
+
 1. **从EBGP对等体获取的路由，会发布给所有对等体。**
 
 a会发布给EBGP对等体
@@ -425,19 +437,17 @@ b会发布给IBGP对等体
 
 1. **IBGP拥有水平分割特性**
 
-> 从IBGP对等体获取的路由，不会发送给IBGP对等体。
-> 
-> 
-> a不会发布给IBGP对等体
-> 
-> b是否发布给EBGP对等体，要看是否开启BGP同步
-> 
-> ![](attachment:13812fb0-5354-4e92-8213-656b167a7569:image14.png)
-> 
+从IBGP对等体获取的路由，不会发送给IBGP对等体。
+
+a不会发布给IBGP对等体
+
+b是否发布给EBGP对等体，要看是否开启BGP同步
+
+![](attachment:13812fb0-5354-4e92-8213-656b167a7569:image14.png)
+
 1. **BGP同步规则**
 
-> IBGP与IGP同步，当一台路由器从自己的IBGP对等体学习到一条BGP路由时（这类路由被称为IBGP路由），它将不能使用该条路由或把这条路由通告给自己的EBGP对等体，除非它又从IGP协议（例如OSPF等，此处也包含静态路由）学习到这条路由，也就是要求IBGP路由与IGP路由同步。同步规则主要用于规避BGP路由黑洞问题。
-> 
+IBGP与IGP同步，当一台路由器从自己的IBGP对等体学习到一条BGP路由时（这类路由被称为IBGP路由），它将不能使用该条路由或把这条路由通告给自己的EBGP对等体，除非它又从IGP协议（例如OSPF等，此处也包含静态路由）学习到这条路由，也就是要求IBGP路由与IGP路由同步。同步规则主要用于规避BGP路由黑洞问题。
 
 ---
 
@@ -534,7 +544,7 @@ AA：NN格式，AA表示AS号，NN为自定义编号
 | Internet | 0（0x00000000) | 设备在收到具有此属性的路由后，可以向任何BGP对等体发送该路由。默认情况下，所有的路由都属于Internet团体 |
 | No_Advertise | 4294967042( OxFFFFFF02) | 设备收到具有此属性的路由后，将不向任何BGP对等体发送该路由 |
 | No_Export | 4294967041(OxFFFFFF01) | 设备收到具有此属性的路由后，将不向AS外发送该路由 |
-| No_ Export_Subconfed | 4294967043( OxFFFFFF03) | 设备收到具有此属性的路由后，将不向AS外发送该路由，也不向AS内其他子AS发布此路由 |
+| No_Export_Subconfed | 4294967043( OxFFFFFF03) | 设备收到具有此属性的路由后，将不向AS外发送该路由，也不向AS内其他子AS发布此路由 |
 
 RFC1997
 
@@ -560,7 +570,7 @@ RFC1997
 
 当到达同一个目的网段存在多条路由时，BGP路由器会丢弃下一跳不可达的路由，随后通过不同的路由来源进行优选。
 
-**优先级从高到低排列**
+### **优先级从高到低排列**
 
 1. **最高权重（Weight）-----思科私有**
 
@@ -599,6 +609,7 @@ AS_Path属性记录了路由经过的AS列表，路径越短越优先（防环�
 - IGP（通过network命令通告，标记为i）
 - EGP（已废弃，标记为e）
 - Incomplete（通过重分发引入，标记为?）
+
 1. **最小MED值（Multi-Exit Discriminator）**
 
 MED值是用来向相邻AS“建议”入站流量路径，MED值越小越优先。
@@ -656,3 +667,4 @@ MED值是用来向相邻AS“建议”入站流量路径，MED值越小越优先
 - **最大抑制时间**
 
 即使路由持续抖动，抑制时间也不会超过**最大抑制时间（Max Suppress Time，默认60分钟）**。
+  
