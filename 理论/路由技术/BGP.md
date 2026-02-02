@@ -171,13 +171,8 @@ sequenceDiagram
 | 报文 | 类型 | 用处 |
 | --- | --- | --- |
 | **Open** | **Type=1** | 用于协商参数、建立BGP对等体，TCP三次握手正常建立之后，才会发送Open报文。 |
-<<<<<<< HEAD
 | **Update** | **Type=2** | 用于更新传递路由信息。 |
 | **Notification** | **Type=3** | 当BGP检测到错误时，会用Notification报文报告错误信息，断开邻居关系。 |
-=======
-| **Update** | **Type=2** | 用于更新传递路由信息 |
-| **Notification** | **Type=3** | 当BGP检测到 错误时，会用Notification报文报告错误信息，断开邻居关系。 |
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 | **Keepalive** | **Type=4** | 定期发送，用于维持BGP对等体关系，Keepalive报文格式中只包含报文头，没有附加其他任何字段。 |
 | **Route-Refresh（可选）** | **Type=5** | 路由刷新报文，让对方主动给我发送最新的，我所需要的路由信息,需双方支持Route Refresh能力。 |
 
@@ -187,16 +182,10 @@ sequenceDiagram
 
 ```mermaid
 packet-beta
-<<<<<<< HEAD
 title BGP 报文头结构 (BGP Message Header)
 0-127: "Marker (16 字节)"
 128-143: "Length (2 字节)"
 144-159: "Type (1 字节)"
-=======
-0-127: "Marker (16 Bytes)"
-128-143: "Length (2 Bytes)"
-144-159: "Type (1 Byte + Padding/Reserved)"
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 ```
 
 - **Marker（标记）**
@@ -217,7 +206,6 @@ title BGP 报文头结构 (BGP Message Header)
 
 ```mermaid
 packet-beta
-<<<<<<< HEAD
 title BGP Open Message Header
 0-7: "Version (1B)"
 8-31: "Reserved (Padding)"
@@ -226,14 +214,6 @@ title BGP Open Message Header
 64-95: "BGP Identifier (4B)"
 96-103: "Opt Param Len (1B)"
 104-127: "Optional Parameters (Variable)"
-=======
-0-7: "Version (1B)"
-8-31: "My AS (2B)"
-32-47: "Hold Time (2B)"
-48-79: "BGP Identifier (4B)"
-80-87: "Opt Parm Len (1B)"
-88-119: "Optional Parameters (Variable)"
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 ```
 
 - **Version**
@@ -264,7 +244,6 @@ BGP标识符，以IP地址形式发送，用于识别确定BGP路由器，类似
 
 ```mermaid
 packet-beta
-<<<<<<< HEAD
 title BGP Open Message Header
 0-7: "Version (1B)"
 8-31: "Reserved (Padding)"
@@ -273,13 +252,6 @@ title BGP Open Message Header
 64-95: "BGP Identifier (4B)"
 96-103: "Opt Param Len (1B)"
 104-127: "Optional Parameters (Variable)"
-=======
-0-15: "Withdrawn Routes Length (2B)"
-16-47: "Withdrawn Routes (Variable)"
-48-63: "Total Path Attribute Length (2B)"
-64-95: "Path Attributes (Variable)"
-96-127: "Network Layer Reachability Information (NLRI) (Variable)"
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 ```
 
 - **Withdrawn Routes Lenth**
@@ -293,10 +265,6 @@ title BGP Open Message Header
 编码格式为 <长度+前缀>
 
 > 长度（1字节）：前缀的掩码位数（0-32）。
-<<<<<<< HEAD
-=======
-> 前缀（变长）：按前缀位数对齐到字节，不足补零。
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 > 前缀（变长）：按前缀位数对齐到字节，不足补零。
 
@@ -308,11 +276,7 @@ title BGP Open Message Header
 
 - **Path Attributes**
 
-<<<<<<< HEAD
 路径属性包含路由的路径属性。每个属性由TLV三元组———类型（Type）、长度（Length）和值（Value）组成，详见BGP路径属性。
-=======
-路径属性包含路由的路径属性。每个属性由TLV三元组———类型（Type）、长度（Length）和值（Value）组成，详见[BGP路径属性]。
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 - **NLRI**
 
@@ -333,11 +297,7 @@ packet-beta
 
 错误错误代码，定义错误的类型，非特定的错误类型用零表示。
 
-<<<<<<< HEAD
 BGP错误码：[关于BGP的notification错误码的解释](https://zhiliao.h3c.com/topic/huati/3617)1
-=======
-BGP错误码：![关于BGP的notification错误码的解释](https://blog.csdn.net/sj349781478/article/details/120256412)
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 - **Data**
 
@@ -544,19 +504,11 @@ BGP通告遵循以下原则：
 
 在BGP路由表中
 
-<<<<<<< HEAD
 \- ：代表有效
 
 \>：代表最优
 
 ![image8.png](images/BGP_image/image8.png)
-=======
-- ：代表有效
-
-：代表最优
-
-![](attachment:af3ee858-4f44-41e1-b6d0-dca2ad3e153a:image13.png)
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 1. **从EBGP对等体获取的路由，会发布给所有对等体。**
 
@@ -568,7 +520,6 @@ BGP通告遵循以下原则：
 
 从IBGP对等体获取的路由，不会发送给IBGP对等体。
 
-<<<<<<< HEAD
 - a不会发布给IBGP对等体
 
 - b是否发布给EBGP对等体，要看是否开启BGP同步
@@ -597,13 +548,6 @@ graph TD
     end
 
 ```
-=======
-a不会发布给IBGP对等体
-
-b是否发布给EBGP对等体，要看是否开启BGP同步
-
-![](attachment:13812fb0-5354-4e92-8213-656b167a7569:image14.png)
->>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 1. **BGP同步规则**
 
