@@ -171,10 +171,15 @@ sequenceDiagram
 | 报文 | 类型 | 用处 |
 | --- | --- | --- |
 | **Open** | **Type=1** | 用于协商参数、建立BGP对等体，TCP三次握手正常建立之后，才会发送Open报文。 |
+<<<<<<< HEAD
+| **Update** | **Type=2** | 用于更新传递路由信息。 |
+| **Notification** | **Type=3** | 当BGP检测到错误时，会用Notification报文报告错误信息，断开邻居关系。 |
+=======
 | **Update** | **Type=2** | 用于更新传递路由信息 |
 | **Notification** | **Type=3** | 当BGP检测到 错误时，会用Notification报文报告错误信息，断开邻居关系。 |
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 | **Keepalive** | **Type=4** | 定期发送，用于维持BGP对等体关系，Keepalive报文格式中只包含报文头，没有附加其他任何字段。 |
-| **Route-Refresh（可选）** | **Type=5** | 路由刷新报文，让对方主动给我发送最新的，我所需要的路由信息。 |
+| **Route-Refresh（可选）** | **Type=5** | 路由刷新报文，让对方主动给我发送最新的，我所需要的路由信息,需双方支持Route Refresh能力。 |
 
 ### **BGP报头**
 
@@ -182,9 +187,16 @@ sequenceDiagram
 
 ```mermaid
 packet-beta
+<<<<<<< HEAD
+title BGP 报文头结构 (BGP Message Header)
+0-127: "Marker (16 字节)"
+128-143: "Length (2 字节)"
+144-159: "Type (1 字节)"
+=======
 0-127: "Marker (16 Bytes)"
 128-143: "Length (2 Bytes)"
 144-159: "Type (1 Byte + Padding/Reserved)"
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 ```
 
 - **Marker（标记）**
@@ -205,12 +217,23 @@ packet-beta
 
 ```mermaid
 packet-beta
+<<<<<<< HEAD
+title BGP Open Message Header
+0-7: "Version (1B)"
+8-31: "Reserved (Padding)"
+32-47: "My AS (2B)"
+48-63: "Hold Time (2B)"
+64-95: "BGP Identifier (4B)"
+96-103: "Opt Param Len (1B)"
+104-127: "Optional Parameters (Variable)"
+=======
 0-7: "Version (1B)"
 8-31: "My AS (2B)"
 32-47: "Hold Time (2B)"
 48-79: "BGP Identifier (4B)"
 80-87: "Opt Parm Len (1B)"
 88-119: "Optional Parameters (Variable)"
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 ```
 
 - **Version**
@@ -241,11 +264,22 @@ BGP标识符，以IP地址形式发送，用于识别确定BGP路由器，类似
 
 ```mermaid
 packet-beta
+<<<<<<< HEAD
+title BGP Open Message Header
+0-7: "Version (1B)"
+8-31: "Reserved (Padding)"
+32-47: "My AS (2B)"
+48-63: "Hold Time (2B)"
+64-95: "BGP Identifier (4B)"
+96-103: "Opt Param Len (1B)"
+104-127: "Optional Parameters (Variable)"
+=======
 0-15: "Withdrawn Routes Length (2B)"
 16-47: "Withdrawn Routes (Variable)"
 48-63: "Total Path Attribute Length (2B)"
 64-95: "Path Attributes (Variable)"
 96-127: "Network Layer Reachability Information (NLRI) (Variable)"
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 ```
 
 - **Withdrawn Routes Lenth**
@@ -259,9 +293,14 @@ packet-beta
 编码格式为 <长度+前缀>
 
 > 长度（1字节）：前缀的掩码位数（0-32）。
+<<<<<<< HEAD
+=======
+> 前缀（变长）：按前缀位数对齐到字节，不足补零。
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
+
 > 前缀（变长）：按前缀位数对齐到字节，不足补零。
 
-例如192.168.1.0/24，长度为24，前缀为192.168.1。
+> 例如192.168.1.0/24，长度为24，前缀为192.168.1。
 
 - **Total Path Attribute Length**
 
@@ -269,7 +308,11 @@ packet-beta
 
 - **Path Attributes**
 
+<<<<<<< HEAD
+路径属性包含路由的路径属性。每个属性由TLV三元组———类型（Type）、长度（Length）和值（Value）组成，详见BGP路径属性。
+=======
 路径属性包含路由的路径属性。每个属性由TLV三元组———类型（Type）、长度（Length）和值（Value）组成，详见[BGP路径属性]。
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 - **NLRI**
 
@@ -277,15 +320,24 @@ packet-beta
 
 ### **Notification报文**
 
-![图形用户界面, 文本 AI 生成的内容可能不正确。](attachment:fc648d55-f5fc-4456-8e7b-18a475c28fe9:image7.png)
+![image5](images/BGP_image/image5.png)
 
-![image.png](attachment:5b5d9b42-3ca8-40da-ad6e-95e4f082af37:image.png)
+```mermaid
+packet-beta
+  0-7: "Error Code"
+  8-15: "Error Subcode"
+  16-47: "Data (Variable Length)"
+```
 
 - **Error Code**
 
 错误错误代码，定义错误的类型，非特定的错误类型用零表示。
 
+<<<<<<< HEAD
+BGP错误码：[关于BGP的notification错误码的解释](https://zhiliao.h3c.com/topic/huati/3617)1
+=======
 BGP错误码：![关于BGP的notification错误码的解释](https://blog.csdn.net/sj349781478/article/details/120256412)
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 - **Data**
 
@@ -293,9 +345,15 @@ BGP错误码：![关于BGP的notification错误码的解释](https://blog.csdn.n
 
 ### **Keepalive报文**
 
-![图形用户界面, 文本, 应用程序 AI 生成的内容可能不正确。](attachment:19e6b243-f0e5-4a72-850e-f892c24d5186:image8.png)
+![image6.png](images/BGP_image/image6.png)
 
-![image.png](attachment:790337c5-3bf9-434c-bc76-8ee53273cb25:image.png)
+```mermaid
+packet-beta
+  title BGP Fixed Header (19 Bytes)
+  0-127: "Marker (16 Bytes)"
+  128-143: "Length (2 Bytes)"
+  144-151: "Type (1 Byte)"
+```
 
 和BGP报头一样，但type类型标记为4，用于建立和维护对等体关系，类似ospf的holle包。
 
@@ -307,7 +365,13 @@ Type：类型
 
 ### **Route-Refresh报文**
 
-![image.png](attachment:f5ed32cc-5551-4428-91c8-4fd8cda418b1:image.png)
+```mermaid
+packet-beta
+  title BGP Route-Refresh Message
+  0-15: "AFI (Address Family Identifier)"
+  16-23: "Res (Reserved)"
+  24-31: "SAFI (Subsequent AFI)"
+```
 
 - **AFI**
 
@@ -375,7 +439,28 @@ Type：类型
 | **OpenConfirm** | **参数、能力特性协商成功，自己发送Keepalive包，等待对方的Keepalive包** |
 | **Established** | **已经收到对方的Keepalive包，双方能力特性经协商发现一致，开始使用Update通告路由信息** |
 
-![](attachment:1315d0dc-8c92-4b66-ad15-c5d7c9c63b0a:image9.png)
+```mermaid
+stateDiagram-v2
+    Idle --> Connect: Start
+    
+    Connect --> OpenSent: TCP Established (发送Open)
+    Connect --> Active: TCP Failed
+    Connect --> Idle: Error
+    
+    Active --> OpenSent: TCP Established (发送Open)
+    Active --> Connect: Connect Retry Timeout
+    Active --> Idle: Error
+    
+    OpenSent --> OpenConfirm: Receive Correct Open (发送Keepalive)
+    OpenSent --> Idle: Error / 发送Notification
+    
+    OpenConfirm --> Established: Receive Correct Keepalive
+    OpenConfirm --> Idle: 收到Notification / Error
+    
+    Established --> Idle: Error
+```
+
+![image7.png](images/BGP_image/image7.png)
 
 这里的6种状态与上面BGP5种消息结合好好理解一下，这是BGP对等体（peer）之间建立连接的主要过程
 
@@ -387,15 +472,51 @@ BGP使用TCP端口**179**建立可靠连接，先启动的BGP的一端会先发�
 
 如图R1先启动BGP，所以R1发起TCP链接。
 
-![G:\bgp过程1.png](attachment:5a3043e3-c5f2-4bfb-840a-59e921d65dfe:image10.png)
+```mermaid
+sequenceDiagram
+    participant R1 as R1 (AS 65001)
+    participant R2 as R2 (AS 65002)
+    
+    R1->>R2: TCP SYN
+    R2->>R1: TCP SYN + TCP ACK
+    R1->>R2: TCP ACK
+```
 
 TCP链接建立成功后，R1与R2开始互相发送OPEN报文，协商参数
 
-![G:\bgp过程2.png](attachment:27f42cd3-4383-4841-a708-e0634d187774:image11.png)
+```mermaid
+sequenceDiagram
+    participant R1 as R1 (AS 65001)
+    participant R2 as R2 (AS 65002)
+    
+    R1->>R2: Keepalive
+    R2->>R1: Keepalive
+```
 
 参数协商正常后，双方互相发送Keepalive报文后对等体建立成功。
 
-![图示 AI 生成的内容可能不正确。](attachment:000e484a-1e97-46ad-99bb-7892686e71e0:image12.png)
+```mermaid
+sequenceDiagram
+    participant R1 as R1 (AS 65001)
+    participant R2 as R2 (AS 65002)
+    
+    Note over R1, R2: 2. Keepalive 确认
+    R1->>R2: Keepalive
+    R2->>R1: Keepalive
+```
+
+正式建立BGP对等体关系后，双方可以互相发送Update报文通告路由。
+
+```mermaid
+sequenceDiagram
+    participant R1 as R1 (AS 65001)
+    participant R2 as R2 (AS 65002)
+    
+    Note over R1,R2: 状态已进入 Established
+    R1->>R2: Update (通告 192.168.1.0/24 等)
+    R2->>R1: Update (通告 10.0.0.0/8 等)
+    Note over R1,R2: 交换完毕，周期性发送 Keepalive 维持连接
+```
 
 ### **BGP对等体关系维护**
 
@@ -423,27 +544,66 @@ BGP通告遵循以下原则：
 
 在BGP路由表中
 
+<<<<<<< HEAD
+\- ：代表有效
+
+\>：代表最优
+
+![image8.png](images/BGP_image/image8.png)
+=======
 - ：代表有效
 
 ：代表最优
 
 ![](attachment:af3ee858-4f44-41e1-b6d0-dca2ad3e153a:image13.png)
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 1. **从EBGP对等体获取的路由，会发布给所有对等体。**
 
-a会发布给EBGP对等体
+- a会发布给EBGP对等体
 
-b会发布给IBGP对等体
+- b会发布给IBGP对等体
 
 1. **IBGP拥有水平分割特性**
 
 从IBGP对等体获取的路由，不会发送给IBGP对等体。
 
+<<<<<<< HEAD
+- a不会发布给IBGP对等体
+
+- b是否发布给EBGP对等体，要看是否开启BGP同步
+
+```mermaid
+graph TD
+    subgraph AS_65001 [AS 65001]
+        R1[MSR36-20_1]
+        R2[MSR36-20_2]
+        R3[MSR36-20_3]
+        R4[MSR36-20_4]
+
+        %% 成功的路由传递
+        R1 -- "路由" --> R2
+        R1 -- "路由" --> R3
+
+        %% 被水平分割阻止的传递
+        R2 -- "X (水平分割)" --> R4
+        R3 -- "X (水平分割)" --> R4
+
+        %% 物理连接/邻居关系
+        R1 --- R2
+        R1 --- R3
+        R2 --- R4
+        R3 --- R4
+    end
+
+```
+=======
 a不会发布给IBGP对等体
 
 b是否发布给EBGP对等体，要看是否开启BGP同步
 
 ![](attachment:13812fb0-5354-4e92-8213-656b167a7569:image14.png)
+>>>>>>> 08762afd898b28fc6d4f424a9fe52dc0f00fbbff
 
 1. **BGP同步规则**
 
@@ -455,9 +615,28 @@ IBGP与IGP同步，当一台路由器从自己的IBGP对等体学习到一条BGP
 
 ### **路径属性分类**
 
-![](attachment:7b727e9a-79d7-4938-87ce-fc0423a8f131:image15.png)
+![image9.png](images/BGP_image/image9.png)
 
-![图形用户界面, 应用程序 AI 生成的内容可能不正确。](attachment:1052fb08-4fe5-4603-b1a5-5dc80e5fe20d:image16.png)
+```mermaid
+mindmap
+  root((BGP_路径属性<br/>BGP_Path_Attributes))
+    Well-known<br/>公认
+      Well-known_Mandatory<br/>公认必遵
+        Origin<br/>源
+        AS-Path<br/>AS路径
+        Next_hop<br/>下一跳
+      Well-known_Discretionary<br/>公认任意
+        Local_Preference<br/>本地优先级
+        Atomic_aggregate<br/>原子聚合
+    Optional<br/>可选
+      Optional_Transitive<br/>可选过渡
+        Aggregator<br/>聚合者
+        Community<br/>团体属性
+      Optional_Non-transitive<br/>可选非过度
+        MED<br/>多出口鉴别器
+        Cluster-List<br/>簇列表
+        Originator-ID<br/>起源者ID
+```
 
 - **公认必遵（Well-known Mandatory）**
 
@@ -474,8 +653,6 @@ BGP设备可以不识别属性，但仍然会接收并通告给其他BGP对等�
 - **可选非过度（Optional Non-transitive）**
 
 BGP设备可以不识别属性，也可以不接收通告，并且不传输其他BGP对等体。
-
-### **路径属性**
 
 ### **公认必遵**
 
@@ -535,7 +712,14 @@ Community写法：
 
 AA：NN格式，AA表示AS号，NN为自定义编号
 
-![image.png](attachment:efbae3d9-dab5-42cd-b519-4aef2b76351e:image.png)
+```mermaid
+packet-beta
+title 内存布局图
+0-7: "AA"
+8-15: " "
+16-23: "NN"
+24-31: " "
+```
 
 公认Community属性：
 
@@ -558,7 +742,7 @@ RFC1997
 - 使用network和import-route方式引入路由到BGP中，产生的路由的MED值会继承IBG的metric。例如一条ospf发路由cost值为100，将他引入BGP中时，这条路由的MED便继承为100。
 - **Cluster_list**
 
-在路由反射器（RR）场景中标识路由的原始发起者，若路由被反射回原始发起者，即发起者的Router ID与**Originator_ID**相同，发起者会**丢弃该路由**，防止同一集群内路由环路。[RR路由反射器](about:blank#rr%E8%B7%AF%E7%94%B1%E5%8F%8D%E5%B0%84%E5%99%A8)。
+在路由反射器（RR）场景中标识路由的原始发起者，若路由被反射回原始发起者，即发起者的Router ID与**Originator_ID**相同，发起者会**丢弃该路由**，防止同一集群内路由环路。
 
 - **Orignator_ID**
 
@@ -578,11 +762,11 @@ RFC1997
 
 优先级取值范围为0-65535，默认值为0，本地生成的路由值32768，值大优先。
 
-1. **首选值 (Preferred-Value) -----华为私有**
+2. **首选值 (Preferred-Value) -----华为私有**
 
 与最高权重（Weight）相似，但是默认优先级值都为0。
 
-1. **最高本地优先级（Local Preference，Local Pref）**
+3. **最高本地优先级（Local Preference，Local Pref）**
 
 在同一AS内部生效，不会传递到AS外部，用于全局路由优先级决策。
 
@@ -590,19 +774,21 @@ AS内所有路由器优先选择Local Pref值更大的出口路由。一般用�
 
 取值范围为232。默认值为100，可手动修改，值大优先。
 
-1. **本地生成的路由（Locally Originated）**
+4. **本地生成的路由（Locally Originated）**
 
 本地生成的路由，优先于从对等体学到的路由。
 
 优选手动聚合>自动聚合>network>import>从对等体学到的
 
-1. **最短AS路径（Shortest AS_Path）**
+5. **最短AS路径（Shortest AS_Path）**
 
 AS_Path属性记录了路由经过的AS列表，路径越短越优先（防环机制）。
 
 若配置了bgp bestpath as-path ignore，则跳过此规则。
 
-1. **最低起源类型（Origin Type）**
+6. **最低起源类型（Origin Type）**
+
+---
 
 **优先级顺序**：
 
@@ -618,29 +804,29 @@ MED值是用来向相邻AS“建议”入站流量路径，MED值越小越优先
 
 如果未配置bgp always-compare-med，仅比较同一AS的路由。
 
-1. **优选外部路由（EBGP > IBGP）**
+2. **优选外部路由（EBGP > IBGP）**
 
 从EBGP对等体学到的路由优先于从IBGP对等体学到的路由。
 
-1. **到下一跳的IGP度量最小（Lowest IGP Metric）**
+3. **到下一跳的IGP度量最小（Lowest IGP Metric）**
 
 如果多条路由的下一跳相同，选择到下一跳IGP开销最小的路径（Next_Hop的IGP度量值最小的路由）。
 
-1. **负载均衡**
+4. **负载均衡**
 
 如果配置负载均衡，且所有路径的负载均衡优先级以上属性一致。才使用负载均衡。
 
-1. **最旧的路由（Oldest Route）**
+5. **最旧的路由（Oldest Route）**
 
 若多条路由属性完全一致，优先选择最早接收的路由（稳定性优先）。
 
-1. **最低路由器ID（Lowest Router ID）**
+6. **最低路由器ID（Lowest Router ID）**
 
 若所有属性相同，选择来自BGP Router ID最小的对等体的路由。
 
 若配置了**bgp bestpath compare-routerid**，则跳过此规则。
 
-1. **最短邻居地址（最低IP地址）**
+7. **最短邻居地址（最低IP地址）**
 
 若Router ID相同（如使用环回接口），选择对等体IP地址较小的路径。
 
