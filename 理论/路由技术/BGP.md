@@ -700,17 +700,19 @@ RFC1997
 
 ### **优先级从高到低排列**
 
-1. **最高权重（Weight）-----思科私有**
+1. **厂商私有属性**
+
+- **最高权重（Weight）-----思科私有**
 
 仅在本地路由器生效，用于本机路由优先级控制，不会通过BGP报文传递给其他路由器。
 
 优先级取值范围为0-65535，默认值为0，本地生成的路由值32768，值大优先。
 
-2. **首选值 (Preferred-Value) -----华为私有**
+- **首选值 (Preferred-Value) -----华为私有**
 
 与最高权重（Weight）相似，但是默认优先级值都为0。
 
-3. **最高本地优先级（Local Preference，Local Pref）**
+2. **最高本地优先级（Local Preference，Local Pref）**
 
 在同一AS内部生效，不会传递到AS外部，用于全局路由优先级决策。
 
@@ -718,21 +720,19 @@ AS内所有路由器优先选择Local Pref值更大的出口路由。一般用�
 
 取值范围为232。默认值为100，可手动修改，值大优先。
 
-4. **本地生成的路由（Locally Originated）**
+3. **本地生成的路由（Locally Originated）**
 
 本地生成的路由，优先于从对等体学到的路由。
 
 优选手动聚合>自动聚合>network>import>从对等体学到的
 
-5. **最短AS路径（Shortest AS_Path）**
+4. **最短AS路径（Shortest AS_Path）**
 
 AS_Path属性记录了路由经过的AS列表，路径越短越优先（防环机制）。
 
 若配置了bgp bestpath as-path ignore，则跳过此规则。
 
-6. **最低起源类型（Origin Type）**
-
----
+5. **最低源类型（Origin Type）**
 
 **优先级顺序**：
 
@@ -740,7 +740,7 @@ AS_Path属性记录了路由经过的AS列表，路径越短越优先（防环�
 - EGP（已废弃，标记为e）
 - Incomplete（通过重分发引入，标记为?）
 
-1. **最小MED值（Multi-Exit Discriminator）**
+6. **最小MED值（Multi-Exit Discriminator）**
 
 MED值是用来向相邻AS“建议”入站流量路径，MED值越小越优先。
 
@@ -748,33 +748,48 @@ MED值是用来向相邻AS“建议”入站流量路径，MED值越小越优先
 
 如果未配置bgp always-compare-med，仅比较同一AS的路由。
 
-2. **优选外部路由（EBGP > IBGP）**
+7. **优选外部路由（EBGP > IBGP）**
 
 从EBGP对等体学到的路由优先于从IBGP对等体学到的路由。
 
-3. **到下一跳的IGP度量最小（Lowest IGP Metric）**
+8. **到下一跳的IGP度量最小（Lowest IGP Metric）**
 
 如果多条路由的下一跳相同，选择到下一跳IGP开销最小的路径（Next_Hop的IGP度量值最小的路由）。
 
-4. **负载均衡**
+9. **负载均衡**
 
 如果配置负载均衡，且所有路径的负载均衡优先级以上属性一致。才使用负载均衡。
 
-5. **最旧的路由（Oldest Route）**
+10. **最旧的路由（Oldest Route）**
 
 若多条路由属性完全一致，优先选择最早接收的路由（稳定性优先）。
 
-6. **最低路由器ID（Lowest Router ID）**
+11. **最低路由器ID（Lowest Router ID）**
 
 若所有属性相同，选择来自BGP Router ID最小的对等体的路由。
 
 若配置了**bgp bestpath compare-routerid**，则跳过此规则。
 
-7. **最短邻居地址（最低IP地址）**
+13. **最短邻居地址（最低IP地址）**
 
 若Router ID相同（如使用环回接口），选择对等体IP地址较小的路径。
 
-汇总。
+**汇总**:
+
+| 顺序 | 属性名称 | 中文名称 |
+| :---: | :--- | :--- |
+| 1 | Weight (Cisco) / Preferred-Value (Huawei) | 权重 / 首选值 |
+| 2 | Local Preference | 本地优先级 |
+| 3 | Locally Originated | 本地生成的路由 |
+| 4 | AS_Path | AS 路径长度 |
+| 5 | Origin Type | 起源类型 |
+| 6 | MED (Multi-Exit Discriminator) | 多出口鉴别器 |
+| 7 | EBGP > IBGP | EBGP 优于 IBGP |
+| 8 | IGP Metric (to Next Hop) | 下一跳 IGP 度量值 |
+| 9 | Load Balancing (Multipath) | 负载均衡 |
+| 10 | Oldest Route | 最旧路由 |
+| 11 | Router ID | 路由器 ID |
+| 12 | Neighbor IP | 邻居 IP 地址 |
 
 ## **路由衰减**
 
