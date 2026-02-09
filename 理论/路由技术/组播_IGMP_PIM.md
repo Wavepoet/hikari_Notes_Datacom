@@ -1,3 +1,7 @@
+# 组播_IGMP_PMI
+
+---
+
 # **组播**
 
 HCIA学习过组播是共同监听一个IP，用这个IP来收发信息，HCIP这主要学习的是组播地址，组播协议以及组播是如何在网络中传输的。
@@ -10,7 +14,7 @@ HCIA学习过组播是共同监听一个IP，用这个IP来收发信息，HCIP�
 
 客户端到路由器需要加入特定的组播组
 
-![image.png](attachment:1d1b08df-1777-4823-b904-0dcb003f89f6:image.png)
+![image1.png](images/组播_image/image1.png)
 
 ## **IP组播地址**
 
@@ -37,6 +41,7 @@ IANA对组播IP地址空间进行了进一步的划分
 | **224.0.0.22** | IGMP |
 | **224.0.0.102** | HSRP |
 | **224.0.0.251** | mDNS |
+
 - **范围：0.1.0~231.255.255.255，233.0.0.0~238.255.255.255**
 
 ASM（Any-Source）的临时组播地址，这类地址全局有效。
@@ -67,21 +72,30 @@ ASM又可以分为全网MSA地址和内网ASM地址，全网ASM地址类似IP的
 
 组播IP地址
 
-|<------9bit------->| <---------------------23bit-------------------------->|
+```mermaid
+packet-beta
+    title 组播IP地址结构 (32 Bit)
+    0-8: "9 bit (1110 XXXX . X)"
+    9-15: "XXX XXXX"
+    16-23: "XXXX XXXX"
+    24-31: "XXXX XXXX"
+```
 
-| 1110 XXXX . X | XXX XXXX | XXXX XXXX | XXXX XXXX |
-| --- | --- | --- | --- |
-
-组播MAC地址      ↓                                                    ↓
-
-| 01-00-5E-0 | XXX XXXX . XXXX XXXX . XXXX XXXX |
-| --- | --- |
+```mirmaid
+packet-beta
+    title 组播 MAC 地址 (48 Bits)
+    0-23: "24 bit (OUI: 01-00-5E)"
+    24: "1 bit (固定 0)"
+    25-47: "23 bit (映射数据)"
+```
 
 MAC地址的第23bit为组播IP的低23bit，直接照搬。
 
 组播IP开头4bit必为1110，开通9 bit无论怎样变化，组播MAC的开都都为01-00-5E-0。因此在配置时要避免组播MAC相同的情况。
 
-![image.png](attachment:f96323b1-81c4-45bb-bd4d-ca7931419dac:image.png)
+```txet
+有一个有趣的故事是关于为什么只有 23 位有价值的 MAC 地址空间分配给 IP 组播。回到 20 世纪 90 年代初，Steve Deering 取得了一些关于 IP 组播研究工作的成果，因此，他希望 IEEE 配置 16 个连续不断的组织机构唯一性标识符(OUI)作为 IP 组播 MAC 地址使用。因为一个 OUI 包含 24 位有价值的地址空间，16 个连续不断的 OUI 将提供全部 28 位有价值的 MAC 地址空间，并且允许一对一地把第 3 层 IP 组播地址映射到 MAC 地址。很遗憾，当时一个 OUI 的价格是 $1 000，Steve 的经理，Jon Postel，不愿花$ 16 000 购买全部 28 位有价值 MAC 地址。相反，Jon 愿意在预算外花 $ 1 000 购买一个 OUI，并且拿出一半地址(23 位)给 Steve 供 IP 组播研究之用。
+```
 
 更多详细内容：
 
@@ -89,11 +103,9 @@ MAC地址的第23bit为组播IP的低23bit，直接照搬。
 
 [https://www.cisco.com/c/dam/en/us/support/docs/ip/ip-multicast/ipmlt_wp.pdf](https://www.cisco.com/c/dam/en/us/support/docs/ip/ip-multicast/ipmlt_wp.pdf#:~:text=The%20range%20of%20224.0.0.0%20through%20224.0.0.255%20is%20considered,the%20Link-Local%20Block%E2%80%94and%20isusedby%20networkprotocols%20on%20alocal%20subnetsegment.)
 
-翻译版本由于占用内存，无法转入notion中。
-
 ---
 
-# **GMP（Internet Group Management Protocol，互联网组管理协议）**
+# **IGMP（Internet Group Management Protocol，互联网组管理协议）**
 
 IGMP是用于管理与组播路由器相邻的客户端（Client）的关系，管理组播组的协议，位于网络层，与ICMP类似，属于控制协议，目前IGMP有3个版本，分别为IGMPv1，IGMPv2，IGMPv3，现在主流使用的版本是IGMPv2。
 
@@ -113,19 +125,27 @@ IGMPv1不支持查询器选举
 
 IGMP的最初版本，路由器开启IGMP后则会发送Membership Query查询报文，缺省时间为60s，即每60s查询一遍是否有人想要加入组播组，如有设备想加入则发送Membership Report响应报文加入。
 
-### **报文**
+## **报文**
 
 [IGMP报文格式 - IGMP报文格式 - IP 报文格式大全 - 华为](https://support.huawei.com/enterprise/zh/doc/EDOC1100174722/35dbfbdd)
 
 查询报文
 
-![image.png](attachment:d9a1dd12-2e19-412c-b5cb-7067d0e093e1:image.png)
+![image2.png](images/组播_image/image2.png)
 
 响应报文
 
-![image.png](attachment:6becaaea-5b86-4b51-bae2-643bf5ccb07d:image.png)
+![imag3.png](images/组播_image/image3.png)
 
-![image.png](attachment:5c7bc194-40ac-495e-89ef-ad5d0ffcf8a6:image.png)
+```mermaid
+packet-beta
+    title IGMP 报文结构
+    0-3: "Version (版本)"
+    4-7: "Type (类型)"
+    8-15: "Unused (未使用字段)"
+    16-31: "Checksum (校验和)"
+    32-63: "Group Address (组播地址)"
+```
 
 - **Version：**
 
