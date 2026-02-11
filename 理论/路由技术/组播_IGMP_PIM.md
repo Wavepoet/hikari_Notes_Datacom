@@ -93,9 +93,7 @@ MAC地址的第23bit为组播IP的低23bit，直接照搬。
 
 组播IP开头4bit必为1110，开通9 bit无论怎样变化，组播MAC的开都都为01-00-5E-0。因此在配置时要避免组播MAC相同的情况。
 
-```txet
-有一个有趣的故事是关于为什么只有 23 位有价值的 MAC 地址空间分配给 IP 组播。回到 20 世纪 90 年代初，Steve Deering 取得了一些关于 IP 组播研究工作的成果，因此，他希望 IEEE 配置 16 个连续不断的组织机构唯一性标识符(OUI)作为 IP 组播 MAC 地址使用。因为一个 OUI 包含 24 位有价值的地址空间，16 个连续不断的 OUI 将提供全部 28 位有价值的 MAC 地址空间，并且允许一对一地把第 3 层 IP 组播地址映射到 MAC 地址。很遗憾，当时一个 OUI 的价格是 $1 000，Steve 的经理，Jon Postel，不愿花$ 16 000 购买全部 28 位有价值 MAC 地址。相反，Jon 愿意在预算外花 $ 1 000 购买一个 OUI，并且拿出一半地址(23 位)给 Steve 供 IP 组播研究之用。
-```
+> 有一个有趣的故事是关于为什么只有 23 位有价值的 MAC 地址空间分配给 IP 组播。回到 20 世纪 90 年代初，Steve Deering 取得了一些关于 IP 组播研究工作的成果，因此，他希望 IEEE 配置 16 个连续不断的组织机构唯一性标识符(OUI)作为 IP 组播 MAC 地址使用。因为一个 OUI 包含 24 位有价值的地址空间，16 个连续不断的 OUI 将提供全部 28 位有价值的 MAC 地址空间，并且允许一对一地把第 3 层 IP 组播地址映射到 MAC 地址。很遗憾，当时一个 OUI 的价格是 $1 000，Steve 的经理，Jon Postel，不愿花$ 16 000 购买全部 28 位有价值 MAC 地址。相反，Jon 愿意在预算外花 $ 1 000 购买一个 OUI，并且拿出一半地址(23 位)给 Steve 供 IP 组播研究之用。
 
 更多详细内容：
 
@@ -129,13 +127,15 @@ IGMP的最初版本，路由器开启IGMP后则会发送Membership Query查询�
 
 [IGMP报文格式 - IGMP报文格式 - IP 报文格式大全 - 华为](https://support.huawei.com/enterprise/zh/doc/EDOC1100174722/35dbfbdd)
 
-查询报文
+查询报文：
 
 ![image2.png](images/组播_image/image2.png)
 
-响应报文
+响应报文：
 
 ![imag3.png](images/组播_image/image3.png)
+
+格式：
 
 ```mermaid
 packet-beta
@@ -187,19 +187,20 @@ IGMPv２相较于IGMPv１，
 
 查询消息
 
-![image.png](attachment:404f4e8a-fda1-4035-b833-924f20927185:image.png)
+[imag4.png](images/组播_image/image4.png)
 
 成员报告消息
 
-![image.png](attachment:436339f2-b608-4edd-bac1-ecb9c694fae1:image.png)
+![imag5.png](images/组播_image/image5.png)
 
 离开消息
 
-![image.png](attachment:8ff3f180-92d8-4e37-854d-588637eaa6be:image.png)
+![imag6.png](images/组播_image/image6.png)
 
-![image.png](attachment:4e9e2b1c-e1b9-4fbe-8013-136c583e808a:image.png)
+![imag7.png](images/组播_image/image7.png)
 
-![image.png](attachment:4cb6ecbd-36c4-4427-acfe-e80bf05dd58c:image.png)
+```mermaid
+```
 
 - **Type**
 
