@@ -81,7 +81,7 @@ packet-beta
     24-31: "XXXX XXXX"
 ```
 
-```mirmaid
+```mermaid
 packet-beta
     title 组播 MAC 地址 (48 Bits)
     0-23: "24 bit (OUI: 01-00-5E)"
@@ -200,6 +200,12 @@ IGMPv２相较于IGMPv１，
 ![imag7.png](images/组播_image/image7.png)
 
 ```mermaid
+packet-beta
+title IGMP 报文格式 (IGMP Message Format)
+0-7: "Type (类型)"
+8-15: "MAX Resp Time (最大响应时间)"
+16-31: "Checksum (校验和)"
+32-63: "Group Address (组播地址)"
 ```
 
 - **Type**
@@ -229,9 +235,16 @@ IGMPv3新增了对SSM的支持，可指定组播源同时取消了专门的离�
 
 - **查询报文**
 
-![image.png](attachment:cae623fb-96f7-49b5-8d30-1408c4a3ab60:image.png)
+![image8.png](images/组播_image/image8.png)
 
-![image.png](attachment:f04dd036-06c0-4606-8624-00fb7b0f3a87:image.png)
+```mermaid
+packet-beta
+title IGMP 报文格式 (IGMP Message Format)
+0-7: "Type (类型)"
+8-15: "MAX Resp Time (最大响应时间)"
+16-31: "Checksum (校验和)"
+32-63: "Group Address (组播地址)"
+```
 
 - **查询消息有三种类型的变体：**
 - 1、“普通查询”由多播路由器发出，用于获知邻接接口(即查询所传输的网络中所相连的接口)的完整的多播接收状态。在一个普通查询中，组地址字段和源数量(N)字段都为0。
@@ -249,7 +262,7 @@ IGMPv3新增了对SSM的支持，可指定组播源同时取消了专门的离�
 
 保留字段，发送报文时置0；接收到报文时，对该字段不做任何处理。
 
-**S**
+- **S**
 
 该比特位置1时，所有收到此查询消息的其他路由器不启动定时器刷新过程，但是此查询消息并不抑制查询器选举过程和路由器的主机侧处理过程。
 
@@ -271,13 +284,27 @@ IGMPv3新增了对SSM的支持，可指定组播源同时取消了专门的离�
 
 - **报告报文**
 
-![image.png](attachment:9b1dd298-309e-4711-aff1-14390c227823:image.png)
+![image9.png](images/组播_image/image9.png)
 
-![image.png](attachment:997107a6-31b1-486b-95de-9e637eb3bd17:image.png)
+```mermaid
+packet-beta
+title IGMPv1/v2 报文格式
+0-7: "Type (类型)"
+8-15: "MAX Resp Time (最大响应时间)"
+16-31: "Checksum (校验和)"
+32-63: "Group Address (组播地址)"
+```
 
 Group Record字段格式
 
-![image.png](attachment:156c4941-97f6-4805-829b-0434e5df6a9b:image.png)
+```mermaid
+packet-beta
+title IGMPv1/v2 报文 (IGMP Message Format)
+0-7: "Type (类型)"
+8-15: "MAX Resp Time (最大响应时间)"
+16-31: "Checksum (校验和)"
+32-63: "Group Address (组播地址)"
+```
 
 IGMPv3包含成员查询消息和成员报告消息两种不同格式的消息报文。成员报告消息是主机向组播路由器发送的报告消息，用报告加入某组播组并只接收由指定组播源发往该组的数据。
 

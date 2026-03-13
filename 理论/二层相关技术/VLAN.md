@@ -12,29 +12,37 @@ IEEE 802.1Q定义了VLAN Tag，配置VLAN后，交换机在以太网的头部的
 
 封装过VLAN Tag的数据帧
 
-|<----------6B--------->|<----------6B--------->|<------4B----->|<--2B-->|
-
-| D address |  | S address | VLAN Tag | Length/Type |
-| --- | --- | --- | --- | --- |
-| Data |  |  |  |  |
-| FCS |  |  |  |  |
-
-|<------4B----->|
+```mermaid
+packet-beta
+0-47: "Destination MAC"
+48-95: "Source MAC"
+96-111: "VLAN Tag: TPID (0x8100)"
+112-114: "VLAN Tag: PRI"
+115-115: "VLAN Tag: C"
+116-127: "VLAN Tag: VID"
+128-143: "Type / Length"
+144-175: "Data Payload ..."
+176-207: "FCS"
+```
 
 Vlan Tag
 
-|<-------------- TPID--------------->|<----------------CFI---------------->|
+```mermaid
+packet-beta
+title 802.1Q VLAN Tag 详细结构
+0-31: "Vlan Tag"
+0-15: "TPID"
+16-31: "TCI (Control Information)"
+16-18: "PRI"
+19-19: "CFI"
+20-31: "VID"
+```
 
-| TPID | PRI | CFI | VID |
-| --- | --- | --- | --- |
-
-16bit 3bit 1bit 12bit
-
-**TPID**
+## **TPID**
 
 用于标识数据帧类型，取值为0x8100时表示IEEE 802.1Q的VLAN数据帧。如果不支持802.1Q的设备收到这样的帧，会将其丢弃，各设备厂商可以自定义该字段的值。当邻居设备将TPID值配置为非0x8100时， 为了能够识别这样的报文，实现互通，必须在本设备上修改TPID值，确保和邻居设备的TPID值配置一致。
 
-**CFI （Canonical Format Indicator，标准格式指示位）**
+## **CFI （Canonical Format Indicator，标准格式指示位）**
 
 表示MAC地址在不同的传输介质中是否以标准格式进行封装，用于兼容以太网和令牌环网。CFI取值为0表示MAC地址以标准格式进行封装，为1表示以非标准格式封装。
 
@@ -65,7 +73,7 @@ Priority可以让交换机对优先级更高的数据帧进行优先转发，从
 | 6 (110) | 语音 (Voice) | 语音流，小于 10ms 延迟和抖动 |
 | 7 (111) | 网络控制 (Network Control) | 网络控制流量，如路由协议 |
 
-**配置**
+## **配置**
 
 // 创建类映射以匹配特定流量
 
