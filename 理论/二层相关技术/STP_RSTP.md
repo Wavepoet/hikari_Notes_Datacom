@@ -26,11 +26,11 @@ STP协议由IEEE 802.1D标准定义，主要是用于解决二层网络中的环
 
 PC向AR-1发送了一个目前地址为不存在此网络中的IP的ARP数据包。
 
-![](attachment:ab7116cf-c2f5-47aa-9b8b-422067ff844b:image1.png)
+![image1.png](images/SRP_RSTP/image1.png)
 
 当AR-1收到ARP包后，向非入接口的接口进行泛洪，也就是向AR-2与AR-3进行泛洪。此时ARP包被复制了2份。
 
-![](attachment:1852f1b5-7839-432f-8f63-01c4293101c2:image2.png)
+![image2.png](images/SRP_RSTP/image2.png)
 
 当AR-2与AR-3收到ARP包后，又会向非入接口的接口进行泛洪，可以看见ARP包又回到了AR-1，ARP包循环发送。
 
@@ -38,15 +38,15 @@ SW1—》SW2—》SW3—》SW1
 
 SW1—》SW3—》SW2—》SW1
 
-![](attachment:97ff1fff-5260-4b71-867e-a5ae507a5dfc:image3.png)
+![image3.png](images/SRP_RSTP/image3.png)
 
 交换机更具型号而定每秒可以转发数百万，数千万个数据包，（这个参数较包转发率）如此不过多久带宽便被环路数据包占满，老的交换机甚至可以死机。
 
-![](attachment:c0a432a5-17ce-4619-b746-d1fcc1f5d293:image4.png)
+![image4.png](images/SRP_RSTP/image4.png)
 
 无论几台交换机，拓扑层面形成环的，便是环路。
 
-![](attachment:c74a207e-d9f1-4639-ab1f-6e070f5a4380:image5.png)
+![image5.png](images/SRP_RSTP/image5.png)
 
 ## **STP的工作过程**
 
@@ -63,21 +63,21 @@ SW1—》SW3—》SW2—》SW1
 
 ### **桥的选举**
 
-**选举RB（root bridge，根桥）**
+- **选举RB（root bridge，根桥）**
 
 桥id最小的交换机会选举成为根桥，简称RB。一个STP网络中根桥只有一个。
 
-![](attachment:f0f352c0-1edc-418d-b91f-3fa2f806907c:image6.png)
+![image6.png](images/SRP_RSTP/image6.png)
 
-**选举RP（root port，根端口）**
+- **选举RP（root port，根端口）**
 
 根端口是去往根桥的端口开销最小的端口，所以只在非根桥的交换机上选举，所有非根桥需要依据根路径开销计算到根桥的最短路径，每个非根桥上只有一个根端口。
 
 每台非根桥，各个接口都会接收到BPDU，其中收到BPDU最优的端口为根端口。
 
-![](attachment:ec7951ee-a1c9-4495-987e-f2c665d36385:image7.png)
+![image7.png](images/SRP_RSTP/image7.png)
 
-**选举DP（Designated Port，指定端口）**
+- **选举DP（Designated Port，指定端口）**
 
 如果一个端口发出的BPDU，优于接收到的BPDU，这个接口就是指定接口。
 
@@ -86,13 +86,13 @@ SW1—》SW3—》SW2—》SW1
 | 对于一台设备而言 | 与本机直接相连并且负责向本机转发配置消息的设备 | 指定桥向本机转发配置消息的端口 |
 | 对于一个局域网而言 | 负责向本网段转发配置消息的设备 | 指定桥向本网段转发配置消息的端口 |
 
-![](attachment:0fddefe5-5d6f-47e4-aca6-ac4aa7dccc27:image8.png)
+![image8.png](images/SRP_RSTP/image8.png)
 
-**阻塞端口**
+- **阻塞端口**
 
 剩下的没有身份的端口将被阻塞。
 
-![](attachment:9b8c39c5-9397-41c0-95df-8ae6fd0f3b29:image9.png)
+![image9.png](images/SRP_RSTP/image9.png)
 
 ## **根路径开销**
 
@@ -112,7 +112,7 @@ SW1—》SW3—》SW2—》SW1
 
 ## **BPDU（桥接协议数据单元）**
 
-**BPDU是STP的核心报文，包含**
+- **BPDU是STP的核心报文，包含**
 
 Root Bridge ID（根桥ID）
 
@@ -141,23 +141,23 @@ Message Age（BPDU存活时间）
 
 STP有五种状态：Disabled，Blocking，Listening，Learning，Forwarding，交换机处于Listening和Learning状态的时间由Forward Delay计时器控制。
 
-**Disabled(禁用状态)**
+- **Disabled(禁用状态)**
 
 管理员手动禁止，未开启生成树，或带端口故障时的状态，此时不转发数据，不处理BPDU。
 
-**Blocking（阻塞状态）**
+- **Blocking（阻塞状态）**
 
 端口刚被激活时，首先进入阻塞状态，由MAX Age决定，缺省时间为20s，交换机STP刚开启时，都认为自己是RB，经过选举，最后没有身份的人，会退回Blocking状态。此状态下不转发数据，不学习MAC。
 
-**Listening（监听状态）**
+- **Listening（监听状态）**
 
 开始发送并接受BPDU，比较BPDU的优劣，如选举完成后仍有身份则，进入Learning状态，如没有身份，则退回Blocking状态。此状态下不转发数据，不学习MAC。
 
-**Learning（学习状态）**
+- **Learning（学习状态）**
 
 开始学习MAC地址，构建MAC地址表，为转发做准备。此状态下不转发数据，学习MAC。
 
-**Forwarding（转发状态）**
+- **Forwarding（转发状态）**
 
 学习完MAC后，正式开始转发数据。
 
@@ -197,15 +197,15 @@ MAC地址更新过程：
 
 正常情况
 
-![](attachment:da1f406c-c2eb-4b06-b95d-685a1aef363b:image10.png)
+![image10.png](images/SRP_RSTP/image10.png)
 
 当链路故障时未更新MAC表
 
-![](attachment:bbfb30b4-bb4a-4ca6-b7ac-c94c1dafbe0a:image11.png)
+![image11.png](images/SRP_RSTP/image11.png)
 
 MAC表更新后
 
-![](attachment:8357d940-3502-46b3-9caf-6387cd9e7a96:image12.png)
+![image12.png](images/SRP_RSTP/image12.png)
 
 # **RSTP（快速生成树）**
 
@@ -215,15 +215,15 @@ RSTP是STP的升级版，基于802.1w标准，可以将收敛时间减少到几�
 
 RSTP相较STP，新增了AP和BP两个备份端口,同时增加了EP来连接终端设备。
 
-**AP（替代端口，Alternate Port）**
+- **AP（替代端口，Alternate Port）**
 
 RP（根端口）的备份，被对端交换机发出的更优的BPDU阻塞的端口，平时RP正常时，AP阻塞，当RP故障时快速切换为RP。
 
-**BP（备份端口，Backup Port）**
+- **BP（备份端口，Backup Port）**
 
 DP（指定端口）的本地备份，被本季交换机发出的更优的BPDU阻塞的端口，防止同一交换机多端口连接同一网段导致环路。
 
-**EP (边缘接口, Edge Port)**
+- **EP (边缘接口, Edge Port)**
 
 旧STP当拓扑中加入新的终端设备时，接口up，就会进行重新计算STP，且链路进入转发状态需要2个Forward时间，事实上，终端设备不转发数据，所以不会形成环路。
 
@@ -268,18 +268,18 @@ RSTP中，当交换机收到次优BPDU后，会自己判定为链路故障，立
 
 ## **保护功能**
 
-**BPDU保护**
+- **BPDU保护**
 
 边缘端口连接着终端设备，一般不会发出BPDU，如果收到说明，要么受到攻击，要么自环（单端口）了，若边缘端口意外收到BPDU，立即关闭端口防止网络震荡，需手动或自动恢复。
 
-**根保护（Root Guard）**
+- **根保护（Root Guard）**
 
 阻止非根桥通过高优先级BPDU抢占根桥地位，保护端口进入Discarding状态直至威胁消失。
 
-**环路保护（Loop Guard）**
+- **环路保护（Loop Guard）**
 
 检测单向链路故障，防止根端口或替代端口因BPDU丢失而错误转发数据。
 
-**TC泛洪保护（Topology Change Protection）**
+- **TC泛洪保护（Topology Change Protection）**
 
 限制单位时间内处理拓扑变更的次数，避免频繁刷新MAC表导致CPU过载。
