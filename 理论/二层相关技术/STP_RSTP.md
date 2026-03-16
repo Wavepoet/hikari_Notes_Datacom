@@ -61,6 +61,13 @@ SW1—》SW3—》SW2—》SW1
 | 优先级 | MAC地址 |
 | --- | --- |
 
+```mermaid
+packet-beta
+title BID（桥ID）结构
+0-7: "优先级"
+8-55: "MAC地址"
+```
+
 ### **桥的选举**
 
 - **选举RB（root bridge，根桥）**

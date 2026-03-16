@@ -34,19 +34,39 @@ MST区域是由一组具有相同MST配置的交换机组成以及它们之间�
 
 一个MST区域包含一个或多个MSTI。
 
-## IST，CST与CIST
+## IST，CST，SST和CIST
+
+其实我觉得IST,CST和CIST的关系有点像LAN,MAN和WAN这类的包含关系。
 
 ### IST(内部生成树)
 
-即MSTI 0，是域内的生成树片段
+IST是一个MST区域内的生成树，MSTI ID为0，责把同一个 MST 域内的所有交换机连接起来，并消除域内的物理环路。所有MSTI都要依赖于IST来进行计算和转发。
+
+- IST的根桥为**区域根（Regional Root）**（MSTI 0中BID最小的交换机）。
+
+- 域内距离总根最近的交换设备为**主桥（Master Bridge，IST Maste）**。
 
 ### CST（公共生成树）
 
-连接所有MST域的单树，将每个域视为虚拟交换机
+cst 是连接所有MST域的单树，将每个域视为虚拟交换机。
+
+本质上是一棵连接各个MST区域的骨干树。
 
 ### CIST（公共内部生成树）
 
-由IST和CST组合构成的全网唯一生成树，根桥为**总根（CIST Root）**（全网BID最小的交换机）
+CIST是整个网络中所有设备的总集。由IST和CST组合构成的全网唯一生成树，连接了一个交换网络内所有交换设备。根桥为**总根（CIST Root）**（全网BID最小的交换机）
+
+### SST(单生成树)
+
+SST是MSTP的兼容模式，和RSTP一样，只有一个实例，所有VLAN都映射到这个实例上。
+
+构成单SST有两种情况：
+
+- 运行STP或RSTP的交换设备只能属于一个生成树。
+
+- MST域中只有一个交换设备，这个交换设备构成单生成树。
+
+### 关系图
 
 ```mermaid
 graph TD
@@ -85,6 +105,12 @@ graph TD
         R4_2 ---|IST| R4_B
     end
 ```
+
+## MSTP的BPDU
+
+## MSTP BPDU和RSTP BPDU的区别
+
+## MSTP 的交互过程
 
 参考：
 
