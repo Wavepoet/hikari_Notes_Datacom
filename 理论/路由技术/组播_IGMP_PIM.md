@@ -183,7 +183,7 @@ IGMPv２相较于IGMPv１，
 
 一般设备开启IGMPV默认开启的便是IGMPv２。
 
-### **报文**
+### 报文
 
 查询消息
 
@@ -231,7 +231,7 @@ title IGMP 报文格式 (IGMP Message Format)
 
 IGMPv3新增了对SSM的支持，可指定组播源同时取消了专门的离开报文，转而使用不含任何source IP（源）的ignp report报文离开。IGMPv3 向下兼容IGMPv2与IGMPv1
 
-### **报文**
+### 报文
 
 - **查询报文**
 
