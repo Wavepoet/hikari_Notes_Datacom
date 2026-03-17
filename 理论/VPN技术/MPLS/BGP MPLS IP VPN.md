@@ -1,0 +1,3 @@
+# BGP MPLAS IP VPN
+
+MPLS VPN 是一种基于MPLS技术的IP VPN。（MPLS不等于MPLS VPN，只是MPLS VPN是MPLS比较知名的运用而已）
