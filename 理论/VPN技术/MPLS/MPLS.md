@@ -136,27 +136,66 @@ TCP连接建立后，传输地址大的一方会发送Initialization报文，协
 
   - 通告
 
-    LER向上游LSR（P）发送Label Mapping报文，告知对方发送该网段的路由数据时，打上标签512。
+    LER向上游LSR（P）发送Label Mapping报文，告知对方发送该网段的路由数据给自己时，打上标签512。
 
   - 传输
 
+    上游LSR收到报文后，将这个标签装入自己的标签库（LIB），同时它也会为这个 FEC 生成一个新的本地标签，然后继续向它的上游发送 Label Mapping 报文。一直传递到入口路由器。
+
+- 关于``上游``和``下游``：
+
+以“路由/目的地”为参考系： 距离目标网段更近的路由器，叫下游；距离目标网段更远的路由器，叫上游。
+
+标签的流向： 标签是由下游分配，并由下游发送给上游的。
+
+数据的流向： 实际的用户数据报文，是由上游发送给下游的。
+
 ### 两种LDP的发布方式
 
-- DU
+- **DU（Downstream Unsolicited，下游自主发布）**
 
-- DoD
+此模式下的下游设备十分主动，只要它为某个FEC分配了本地标签，不需要上游请求，就可以直接向上游发送Label Mapping报文。
+
+- **DoD（Downstream on Demand，下游按需发布）**
+
+下游设备比较被动。它为FEC分配标签后会先存储到本地，直到上游设备发来 Label Request 报文索要，它才会回复 Label Mapping 报文。
+
+```mermaid
+sequenceDiagram
+    participant Upstream as 上游设备 (Transit LSR)
+    participant Downstream as 下游设备 (Egress LER)
+    
+    Note over Upstream, Downstream: 模式 1：DU (下游自主发布) - 现网默认
+    Downstream->>Upstream: Label Mapping (主动通告：去 10.1.1.0 的标签是 3)
+    
+    Note over Upstream, Downstream: 模式 2：DoD (下游按需发布)
+    Upstream->>Downstream: Label Request (请求：去 10.1.1.0 的标签给我一个)
+    Downstream->>Upstream: Label Mapping (回复：去 10.1.1.0 的标签是 3)
+```
 
 ### 标签分配控制方式
 
+这个问题发生在中转设备(LSR/P)上。当它收到上游的请求，或者准备向上游通告标签时，它需要遵循什么规矩？
+
+- **Ordered (有序控制)**
+
+有序控制一般是LDP路由器的默认模式。一台中转设备必须先收到其下一跳（下游）发来的标签映射，它才能为这个 FEC 分配自己的本地标签，并向上游通告。如果是 Egress 节点（终点），则可以直接分配。它保证了如果一条 LSP 没有首尾贯通，就不会向上游瞎发标签，以避免流量黑洞。
+
+- **Independent (独立控制)**
+
+只要本地路由表里有这个 FEC 的路由，不管下游兄弟有没有把标签传过来，立刻为它分配标签并向上游通告。独立控制的好处是建立速度快，但容易在网络震荡时造成短暂的流量黑洞。
+
 ### 标签保留方式
 
+- Liberal (自由保留，LL)
+
+LDP路由器的默认模式。只要是邻居发来的标签，统统保存在标签信息库（LIB）里备用。但是，只有来自最优 IGP 下一跳（R2）的标签，才会被真正下发到转发平面的 LFIB 表中用于指导数据转发。
+
+- Conservative (保守保留，CL)
+
+只保留最优 IGP 下一跳发来的标签。R3 发来的标签？直接丢弃（发送 Label Release 释放掉）。
+
 ### LDP数据包概述
-
-### 标签分配控制
-
-- Independent Control（独立模式）
-
-- Ordered Control（有序模式）
 
 ### LDP报文概述
 
