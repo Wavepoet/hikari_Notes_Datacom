@@ -78,21 +78,83 @@ MPLS在运营商中的部署都是大批量的，此时还用人工手动的分�
 
 LDP（Label Distribution Protocol，标签分发协议）是一种基于BGP的MPLS路由协议，用于在MPLS网络中自动分发标签。
 
-LDP的工作流程可以分为四个阶段
+>LDP使用TCP/UDP的646端口。TCP端口用于交换LDP消息，UDP端口用于建立LDP邻接体。
+>LDP使用组播地址 224.0.0.2。
 
-### 邻居发现
+### FEC（Forwarding Equivalence Class，转发等价类）
 
-### 会话建立
+FEC是一组具有相同转发行为的IP数据包（官话）。
 
-### 标签分发
+可以这么理解：去往同一个目的地、要求相同服务质量的IP数据包，会被归类到同一个FEC当中。
 
-### 标签使用
+LDP会将FEC与标签进行绑定，并告知网络中的其他邻居。
 
-### 标签保留策略
+### LDP邻接体，对等体和会话
+
+- **LDP邻接体(Adjacency)**
+
+当一台LSR接收到对端发送过来的Hello消息后LDP邻接体建立。
+
+LDP邻接体分为两种类型：
+
+- 本地邻接体（Local Adjacency）：链路Hello消息发现的邻接体叫做本地邻接体，通常建立本地邻接体的设备是直连的。
+
+- 远端邻接体（Remote Adjacency）：Target Hello消息发现的邻接体叫做远端邻接体。通常建立远端邻接体的设备是不直连的。
+
+- **对等体(Peer)**
+
+当设备通过Hello报文拿到Transport Address（LSR ID）后，会对其发起TCP连接,三次握手成功后对等体建立。
+
+- **会话 (Session)**
+
+会话是指对等体建立的TCP连接，两个对等体之间，只会建立一个 LDP 会话。
+
+### LDP的工作流程
+
+- **邻居发现**
+
+设备开启LDP后，，会向组播地址``224.0.0.2``周期性发送端口为 UDP 646的LDP Hello报文。
+
+LDP路由器互相收到Hello报文后，建立LDP邻接体。此时，设备知道了对方的存在，以及接下来该用哪个IP去建立TCP连接。
+
+- **会话建立**
+
+双方开始进行TCP握手，传输地址大的一方会发起TCP SYN。
+
+TCP连接建立后，传输地址大的一方会发送Initialization报文，协商LDP版本、Keepalive时间、标签发布方式等参数。被动方收到后，如果接受这些参数，就回复Initialization报文和Keepalive报文。主动方再回复Keepalive。
+
+至此，LDP会话Session正式建立状态机进入Operational状态。
+
+- **标签分发**
+  - 触发
+
+    LER（PE）发现一条新的IGP路由后，会为其生成一个新的FEC。
+
+  - 分配标签
+
+    LER为这个会为FEC分配一个标签，假如这个标签是512。
+
+  - 通告
+
+    LER向上游LSR（P）发送Label Mapping报文，告知对方发送该网段的路由数据时，打上标签512。
+
+  - 传输
+
+### 两种LDP的发布方式
+
+- DU
+
+- DoD
+
+### 标签分配控制方式
+
+### 标签保留方式
+
+### LDP数据包概述
 
 ### 标签分配控制
 
--  Independent Control（独立模式）
+- Independent Control（独立模式）
 
 - Ordered Control（有序模式）
 
@@ -111,8 +173,6 @@ LDP的工作流程可以分为四个阶段
 ### 大大大大前提
 
 首先，NPLS和VPN等协议一样，都是依赖于下层的路由协议的，所以在建立标签转发路径之前路由先得通。
-
-### 标签的建立
 
 ### 标签的转发
 
