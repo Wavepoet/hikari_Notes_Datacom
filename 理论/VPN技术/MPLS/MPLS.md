@@ -99,7 +99,7 @@ LDP邻接体分为两种类型：
 
 - 本地邻接体（Local Adjacency）：链路Hello消息发现的邻接体叫做本地邻接体，通常建立本地邻接体的设备是直连的。
 
-- 远端邻接体（Remote Adjacency）：Target Hello消息发现的邻接体叫做远端邻接体。通常建立远端邻接体的设备是不直连的。
+- （Remote Adjacency）：Target Hello消息发现的邻接体叫做远端邻接体。通常建立远端邻接体的设备是不直连的。
 
 - **对等体(Peer)**
 
@@ -113,7 +113,7 @@ LDP邻接体分为两种类型：
 
 - **邻居发现**
 
-设备开启LDP后，，会向组播地址``224.0.0.2``周期性发送端口为 UDP 646的LDP Hello报文。
+设备开启LDP后，会向组播地址``224.0.0.2``周期性发送端口为 UDP 646的LDP Hello报文。
 
 LDP路由器互相收到Hello报文后，建立LDP邻接体。此时，设备知道了对方的存在，以及接下来该用哪个IP去建立TCP连接。
 
@@ -125,30 +125,91 @@ TCP连接建立后，传输地址大的一方会发送Initialization报文，协
 
 至此，LDP会话Session正式建立状态机进入Operational状态。
 
+>LDP简路由器在建立对等体关系后，会周期性的发送hello包保持对等体关系。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant A as LSR-A (1.1.1.1)<br>【被动方 Passive】
+    participant B as LSR-B (2.2.2.2)<br>【主动方 Active】
+
+    Note over A, B: 阶段一：发现阶段 (Discovery) - 基于 UDP 646
+    A->>B: LDP Hello (携带传输地址 1.1.1.1)
+    B->>A: LDP Hello (携带传输地址 2.2.2.2)
+    Note over A, B: 比较传输地址：2.2.2.2 > 1.1.1.1 <br> B 为主动方发起 TCP 连接
+
+    Note over A, B: 阶段二：建立 TCP 连接 - 基于 TCP 646
+    B->>A: TCP SYN
+    A->>B: TCP SYN, ACK
+    B->>A: TCP ACK
+    Note over A, B: TCP 三次握手完成，建立可靠传输通道
+
+    Note over A, B: 阶段三：会话初始化与参数协商 (Initialization)
+    B->>A: 1. Initialization Message (发送协商参数)
+    Note over A: 检查参数（如 Label Advertisement Mode 等）
+    A->>B: 2. Initialization Message (同步本地参数)
+    A->>B: 3. Keepalive Message (确认 B 的参数)
+    
+    Note over B: 检查 A 发来的参数
+    B->>A: 4. Keepalive Message (确认 A 的参数)
+
+    Note over A, B: 阶段四：会话建立完成 (Operational)
+    Note over A, B: 状态转为 Operational，开始分发标签
+```
+
 - **标签分发**
+
+  这里的例子使用的标签分发方式是DU+Ordered模式，这是标签的分发一般也是默认使用的模式。其他模式详见下文。
+
   - 触发
 
-    LER（PE）发现一条新的IGP路由后，会为其生成一个新的FEC。
+    LER（PE）发现一条新的直连IGP路由后，会为其生成一个新的FEC。
 
   - 分配标签
 
-    LER为这个会为FEC分配一个标签，假如这个标签是512。
+    LER为这个会为FEC分配一个标签，假如这个标签是3。
 
   - 通告
 
-    LER向上游LSR（P）发送Label Mapping报文，告知对方发送该网段的路由数据给自己时，打上标签512。
+    LER向上游LSR（P）发送Label Mapping报文，告知对方发送该网段的路由数据给自己时，打上标签3。
 
   - 传输
 
     上游LSR收到报文后，将这个标签装入自己的标签库（LIB），同时它也会为这个 FEC 生成一个新的本地标签，然后继续向它的上游发送 Label Mapping 报文。一直传递到入口路由器。
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant R1 as R1 (Ingress / 上游 LER)
+    participant R2 as R2 (Transit / P 设备)
+    participant R3 as R3 (Egress / 下游 LER)
+    participant Dest as 目标网络 10.1.1.0/24
+
+    Note over R3: IGP 已经收敛，各节点均有到达 10.1.1.0/24 的路由
+    
+    R3->>R3: 发现自己是 10.1.1.0/24 的 Egress 节点
+    R3->>R3: 为该路由分配隐式空标签 (Implicit Null Label: 3)
+    R3->>R2: 发送 LDP Label Mapping <br> (FEC: 10.1.1.0/24, Label: 3)
+    
+    Note over R2: 收到下游发来的标签，记录到 LIB <br> 结合自身路由表生成 LFIB 转发表
+    
+    R2->>R2: 发现自己是 Transit 节点，为该FEC分配本地标签 (如: 1024)
+    R2->>R1: 发送 LDP Label Mapping <br> (FEC: 10.1.1.0/24, Label: 1024)
+    
+    Note over R1: 收到下游发来的标签，记录到 LIB <br> 发现自己是 Ingress 节点，生成 NHLFE (下一跳标签转发表项)
+    
+    Note over R1, R3: 控制平面准备就绪，一条 LSP (标签交换路径) 建立完成
+```
+
 - 关于``上游``和``下游``：
 
-以“路由/目的地”为参考系： 距离目标网段更近的路由器，叫下游；距离目标网段更远的路由器，叫上游。
+下游：靠近数据目的地的一端。
 
-标签的流向： 标签是由下游分配，并由下游发送给上游的。
+上游：靠近数据源头的一端。
 
-数据的流向： 实际的用户数据报文，是由上游发送给下游的。
+标签的流向：标签是由下游分配，并由下游发送给上游的。
+
+数据的流向：实际的用户数据报文，是由上游发送给下游的。
 
 ### 两种LDP的发布方式
 
@@ -183,7 +244,7 @@ sequenceDiagram
 
 - **Independent (独立控制)**
 
-只要本地路由表里有这个 FEC 的路由，不管下游兄弟有没有把标签传过来，立刻为它分配标签并向上游通告。独立控制的好处是建立速度快，但容易在网络震荡时造成短暂的流量黑洞。
+只要本地路由表里有这个 FEC 的路由，不管下游路由器有没有把标签传过来，立刻为它分配标签并向上游通告。独立控制的好处是建立速度快，但容易在网络震荡时造成短暂的流量黑洞。
 
 ### 标签保留方式
 
@@ -197,8 +258,6 @@ LDP路由器的默认模式。只要是邻居发来的标签，统统保存在�
 
 ### LDP数据包概述
 
-### LDP报文概述
-
 - Discovery（发现）
 
 - Session（会话）
@@ -206,8 +265,6 @@ LDP路由器的默认模式。只要是邻居发来的标签，统统保存在�
 - Advertisement（标签通告）
 
 - Notification（异常）
-
-### MPLS的路由
 
 ### 大大大大前提
 
