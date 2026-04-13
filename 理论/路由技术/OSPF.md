@@ -226,6 +226,19 @@ OSPF AS 100
 ```mermaid
 packet-beta
 title OSPF数据报头
+0-7:"Version(版本)"
+8-15:"Type(类型)"
+16-31:"Packet Length(数据包长度)"
+32-63:"Router ID(路由器 ID)"
+64-95:"Area ID(区域 ID)"
+96-111:"Checksum(校验和)"
+112-127:"Authenticating Type(身份验证类型)"
+128-191:"邻接表和其他"
+```
+
+```mermaid
+packet-beta
+title OSPF数据报头
 0-3:"Version(版本)"
 4-7:"Type(类型)"
 8-15:"Packet Length(数据包长度)"
