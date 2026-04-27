@@ -8,4 +8,9 @@ MP-BPG也叫BGP4+，是BGP-4的一种扩展，使其支持IPv6在内的其他非
 
 详细可见``Datacom/理论/路由技术/BGP4+.md``
 
+## MPLS VPN的构成
+
+MPLS VPN可以分成控制平面和数据平面两部分：
+
+控制平面由VRF,RD,RT等组成，数据平面由MPLS标签和IP数据包组成。
 

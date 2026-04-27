@@ -4,6 +4,8 @@ MPLS是一种结合二层交换效率与三层路由灵活性的转发技术，�
 
 后来，随着ASIC（专用集成电路）技术的迅速发展，IP路由表查找逐步改用硬件方法，处理速度大大提高，这使得MPLS在提高IP网络转发速率方面不再具备明显的优势。但仍在Qos,VPN,流量工程等方面发挥着作用。
 
+---
+
 ## MPLS的设备类型
 
 - CE(Customer Edge,用户边缘设备)
@@ -22,6 +24,8 @@ MPLS是一种结合二层交换效率与三层路由灵活性的转发技术，�
 
 位于提供商网络的核心，不与任何客户网络直接相连。直接参与MPLS标签交换的转发过程，负责根据标签进行数据包的转发。
 
+---
+
 ## MPLS的标签(Label)
 
 MPLS的标签是个转发索引，用来匹配下一跳信息。大小为4字节。其结构如下：
@@ -34,7 +38,7 @@ packet-beta
 24-31: "TTL"
 ```
 
-- Label(标签值，)：20bit，表示一个整数，范围为0~1048575。标签值为0~15为预留标签，16~1048575为可用标签。
+- Label(标签值)：20bit，表示一个整数，范围为0~1048575。标签值为0~15为预留标签，16~1048575为可用标签。
 
 - TC（Traffic Class，流量类别）：3bit，用于区分数据包的优先级，在QoS……中使用。
 
@@ -61,16 +65,18 @@ MPLS路由器在处理标签时只处理最外层标签，内层标签保持不�
 
 ### 特殊标签
 
-| 值 | 名称                 | 作用    |
+| 值 | 名称 | 作用 |
 | - | ------------------ | ----- |
 | 0 | IPv4 Explicit NULL | 保留QoS |
-| 1 | Router Alert       | 控制报文  |
-| 2 | IPv6 Explicit NULL | IPv6  |
-| 3 | Implicit NULL      | PHP   |
+| 1 | Router Alert | 控制报文 |
+| 2 | IPv6 Explicit NULL | IPv6 |
+| 3 | Implicit NULL | PHP |
 
 ### PHP（Penultimate Hop Popping，倒数第二跳弹标签）
 
 字面意思，倒数第二个P就把标签去掉,以减轻出口PE负担，方便PE进行转发。提高效率。
+
+---
 
 ## LDP标签分发协议
 
@@ -99,7 +105,7 @@ LDP邻接体分为两种类型：
 
 - 本地邻接体（Local Adjacency）：链路Hello消息发现的邻接体叫做本地邻接体，通常建立本地邻接体的设备是直连的。
 
-- （Remote Adjacency）：Target Hello消息发现的邻接体叫做远端邻接体。通常建立远端邻接体的设备是不直连的。
+- 远端邻接体（Remote Adjacency）：Target Hello消息发现的邻接体叫做远端邻接体。通常建立远端邻接体的设备是不直连的。
 
 - **对等体(Peer)**
 
@@ -108,6 +114,113 @@ LDP邻接体分为两种类型：
 - **会话 (Session)**
 
 会话是指对等体建立的TCP连接，两个对等体之间，只会建立一个 LDP 会话。
+
+### LDP的数据包类型
+
+在此只做简单的介绍（懒）：
+
+- **Hello Message**
+
+  用于邻居发现和保持邻接体关系。在 LDP 中只有 "Hello Message" 是基于 UDP 的，其他都是基于 TCP 的。
+
+  Hello 包又分为两种：
+  
+  * **Link Hello**：通过链路发现邻居，携带的Transport Address是接口IP地址。TTL一般=1，用于直连邻居。
+
+  * **Target Hello**：通过目标地址发现邻居，携带的 Transport Address 是 LSR ID。TTL一般>1，用于远程邻居。
+
+- **Initialization Message**
+
+用于会话建立时的参数协商。
+
+- **Keepalive Message**
+
+周期性发送，用于监控TCP会话状态,如果一段时间内没有收到对方的Keepalive消息，就认为会话已经失效了。
+
+- **Notification Message**
+
+用于通知对等体发生了异常情况，如果收到的为Advisory(建议)类型Notification Message，则表示出现非致命性错误，会话仍会保持。如果收到的为Fatal(致命)类型Notification Message，会话将被关闭。
+
+- **公告类消息**
+  
+  这类消息主要用于用于创建、改变和删除标签 FEC 的映射。
+
+  * **Address Message**:
+
+     告知邻居自己的接口IP地址，用于构建后续的标签转发表。
+
+  * **Address Withdraw Message**
+
+    撤回之前宣告的接口地址。
+
+  * **Label Mapping Message**
+
+    用于向邻居通告FEC与标签的绑定关系。
+
+  * **Label Request Message**
+
+    请求邻居为某个特定FEC分配标签，通常用于下游按需分发DoD模式。
+
+  * **Label Withdraw Message**
+
+    撤销标签绑定关系。
+
+  * **Label Release Message**
+
+    确认收到撤销消息，或主动释放不再需要的标签。
+
+  * **Label Abort Request Message**
+
+    取消之前的标签请求。
+
+```text
+LDP Message Types
+│
+├── Discovery
+│   └── Hello
+│         ├──Link Hello
+│         └──Target Hello
+│
+├── Session
+│   ├── Initialization
+│   └── KeepAlive
+│
+├── Advertisement
+│   ├── Address Message
+│   ├── Address Withdraw Message
+│   ├── Label Mapping
+│   ├── Label Mapping
+│   ├── Label Request
+│   ├── Label Withdraw
+│   ├── Label Release
+│   └── Label Abort Request
+│
+└── Notification
+    └── Notification
+```
+
+### 两种LDP的发布方式
+
+- **DU（Downstream Unsolicited，下游自主发布）**
+
+此模式下的下游设备十分主动，只要它为某个FEC分配了本地标签，不需要上游请求，就可以直接向上游发送Label Mapping报文。
+
+- **DoD（Downstream on Demand，下游按需发布）**
+
+下游设备比较被动。它为FEC分配标签后会先存储到本地，直到上游设备发来 Label Request 报文索要，它才会回复 Label Mapping 报文。
+
+```mermaid
+sequenceDiagram
+    participant Upstream as 上游设备 (Transit LSR)
+    participant Downstream as 下游设备 (Egress LER)
+    
+    Note over Upstream, Downstream: 模式 1：DU (下游自主发布) - 现网默认
+    Downstream->>Upstream: Label Mapping (主动通告：去 10.1.1.0 的标签是 3)
+    
+    Note over Upstream, Downstream: 模式 2：DoD (下游按需发布)
+    Upstream->>Downstream: Label Request (请求：去 10.1.1.0 的标签给我一个)
+    Downstream->>Upstream: Label Mapping (回复：去 10.1.1.0 的标签是 3)
+```
 
 ### LDP的工作流程
 
@@ -211,29 +324,6 @@ sequenceDiagram
 
 数据的流向：实际的用户数据报文，是由上游发送给下游的。
 
-### 两种LDP的发布方式
-
-- **DU（Downstream Unsolicited，下游自主发布）**
-
-此模式下的下游设备十分主动，只要它为某个FEC分配了本地标签，不需要上游请求，就可以直接向上游发送Label Mapping报文。
-
-- **DoD（Downstream on Demand，下游按需发布）**
-
-下游设备比较被动。它为FEC分配标签后会先存储到本地，直到上游设备发来 Label Request 报文索要，它才会回复 Label Mapping 报文。
-
-```mermaid
-sequenceDiagram
-    participant Upstream as 上游设备 (Transit LSR)
-    participant Downstream as 下游设备 (Egress LER)
-    
-    Note over Upstream, Downstream: 模式 1：DU (下游自主发布) - 现网默认
-    Downstream->>Upstream: Label Mapping (主动通告：去 10.1.1.0 的标签是 3)
-    
-    Note over Upstream, Downstream: 模式 2：DoD (下游按需发布)
-    Upstream->>Downstream: Label Request (请求：去 10.1.1.0 的标签给我一个)
-    Downstream->>Upstream: Label Mapping (回复：去 10.1.1.0 的标签是 3)
-```
-
 ### 标签分配控制方式
 
 这个问题发生在中转设备(LSR/P)上。当它收到上游的请求，或者准备向上游通告标签时，它需要遵循什么规矩？
@@ -250,26 +340,36 @@ sequenceDiagram
 
 - Liberal (自由保留，LL)
 
-LDP路由器的默认模式。只要是邻居发来的标签，统统保存在标签信息库（LIB）里备用。但是，只有来自最优 IGP 下一跳（R2）的标签，才会被真正下发到转发平面的 LFIB 表中用于指导数据转发。
+LDP路由器的默认模式。只要是邻居发来的标签，统统保存在标签信息库（LIB）里备用。但是，只有来自最优IGP下一跳的标签，才会被真正下发到转发平面的LFIB表中用于指导数据转发。
 
 - Conservative (保守保留，CL)
 
-只保留最优 IGP 下一跳发来的标签。R3 发来的标签？直接丢弃（发送 Label Release 释放掉）。
-
-### LDP数据包概述
-
-- Discovery（发现）
-
-- Session（会话）
-
-- Advertisement（标签通告）
-
-- Notification（异常）
+只保留最优IGP下一跳发来的标签。其余直接丢弃（发送 Label Release 释放掉）。
 
 ### 大大大大前提
 
-首先，NPLS和VPN等协议一样，都是依赖于下层的路由协议的，所以在建立标签转发路径之前路由先得通。
+首先，MPLS和VPN等协议一样，都是依赖于下层的路由协议的，所以在建立标签转发路径之前路由先得通。
 
 ### 标签的转发
 
-## 流量工程概述
+MPL设备对标签的转发主要有三种操作：
+
+- 压入（push）
+
+通常发生在入节点，路由器收到一个普通的IP报文，根据目的IP地址查表后，为其打上一个或多个MPLS标签。这个操作被称为压入。
+
+- 交换（swap）
+
+当一个MPLS标签数据包经过一个中转节点时，路由器根据标签查表后，可能需要将原有的标签替换成新的标签，这个操作被称为交换。
+
+- 弹出（pop）
+
+通常发送在出节点，路由器收到一个MPLS标签数据包，根据标签查表后，发现自己是目的地或者需要将标签去掉后转发，这个操作被称为弹出。
+
+## 流量工程（TE）概述
+
+流量工程（Traffic Engineering，TE）是指在网络中对流量进行优化和管理的技术和方法。它的目标是提高网络资源的利用率，减少拥塞，提升网络性能和用户体验。
+
+通常的流量工程可以根据带宽，延迟，服务优先级，QoS等多个属性来进行流量的优化和管理。
+
+显然MPLS的标签交换可以用于流量工程，现在还兴起了SR-TE这一技术。
