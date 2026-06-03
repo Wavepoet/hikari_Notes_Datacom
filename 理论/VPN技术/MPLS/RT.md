@@ -25,39 +25,49 @@ AI 说的，有待查证：
 > - **Hub-Spoke 拓扑**中，Spoke 希望接收 Hub 的路由（Import RT = Hub 的 Export RT），但**不希望接收其他 Spoke 的路由**（即使那些 Spoke 的 Export RT 与自己 Import RT 相同也不行，因为没配置）。如果自动学习所有看到的 Export RT，就会意外引入其他分支的路由，破坏隔离。
 >     
 > - **Extranet 场景**中，只有特定伙伴的 Export RT 才被允许导入，而不是所有
-## RT tag
+## RT Tag
 
-RT值的格式通常由“自治系统号(ASN):用户自定义数字”或“IP地址:用户自定义数字”等构成。例如 ``65000：100``，``192.168.1.1：100``。
+RT Tag的格式通常由“自治系统号(ASN):用户自定义数字”或“IP地址:用户自定义数字”等构成。例如 ``65000：100``，``192.168.1.1：100``。
+
+## RTC（RT Constrained , RT 约束路由分发）
+
+RTC是一种BGP增强功能，用于优化MPLS VPN网络中路由的分发效率，减少不必要的路由更新和资源消耗。RTC 由 RFC－4684 定义。
+
+传统的 MP－BGP 当中，无论有没有 RR（虽然一般都会配置 RR），路由器都会将合法的 VPNv4/v6 路由发送给所有的 MP－BGP 的邻居。即使一些邻居根本不需要的 VPN 路由，仍然会被发送，随后这些不需要的 VPN 路由会经过再通过 Import RT 规则进行过滤然后丢弃掉。这显然是十分浪费资源的。
+
+> 举个例子吧：PE 1 路由器可能只承载了全网 100 个 VPN 实例中的 2 个。但 RR 依然会把这 100 个 VPN 的海量路由全部发给这台 PE 1。
 
 
-```bash
-ip vrf CUSTOMER_A
- rd 65000:1
- route-target export 65000:100    # 为发出的路由打上标签
- route-target import 65000:100    # 接收并导入带有该标签的路由
+RTC 的作用便是让 PE 告诉 RR 感兴趣的 RT Tag ， RR 则会对收到的 VPN 路由进行筛选过滤，只发送感兴趣 RT Tag 的 VPN 路由。为此，在 BGP 中引入了一个全新的地址族－－RT Filter (AFI 1, SAFI 132)(路由目标过滤地址族)。
+
+### RTC 的工作过程
+
+开启 RTC 后，路由器会检查 Import RT 列表 ，找出感兴趣的 RT Tag ，随后 RT 会将这个 RT Tag ，封装到 RT Filter 当中并发给 RR 。
+
+RR 收到 PE 发送的 RT Filter 后，会在本地构建一张 RT 过滤表，表中记录里什么 PE 对应（需要）什么 RT。
+
+当 RR 收到路由时便可以实现按需分发。
+
+### RT Filter(路由目标过滤地址族)
+
+RT Filter 是 BGP 中 RTC 传播 RT Tag 所用的地址族，AFI/SAFI 为：AFI 1, SAFI 132。
+
+其格式为：
+
+```mermaid
+packet-beta 
+title RT Fiiger NLRL
+0-31 : "Origin AS"
+32-95 :  "Route Target"
 ```
+- **Origin AS (4 Bytes / 32 bits)：** 发出这条兴趣 RT 的自治系统号。如果网络使用的是 2 字节 AS 号，高位补零。
+    
+- **Route Target (8 Bytes / 64 bits)：** 这就是你配置在 VRF 里的真实 RT 值。由于 BGP 扩展团体属性本身就是 8 字节，这里直接原样填入。
+
+当 RT Filter 为全空时，为 RT Filter 默认路由，表达对所有的 RT Tag 都感兴趣。通常用在通常是 RR 与 RR，ASBR 当中。
 
 
-## RT 约束路由分发（RT Constrained Route Distribution, RTC）
+### RTC 与 RT
 
-> RT约束路由分发（RT Constrained Route Distribution，简称 RTC）是一种BGP增强功能，用于优化MPLS VPN网络中路由的分发效率，减少不必要的路由更新和资源消耗[](https://www.cisco.com/c/en/us/td/docs/routers/ios-xe/ip-routing/b-ip-routing/m_irg-rt-filter-0.html)。
-> 
-> 传统的MPLS VPN网络中，路由反射器（RR）习惯把所有的VPNv4/v6路由一股脑地发给所有PE设备[](https://www.cisco.com/c/zh_cn/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.pdf#1#1)。哪怕某个PE上根本没有需要这条路由的VPN，它也得先接收下来，再通过Import RT规则进行过滤丢弃[](https://community.cisco.com/t5/mpls/rt-constrained-route-distribution-restrictions/td-p/3902499)。这不仅浪费了PE设备的内存和处理能力，也占用了带宽[](https://www.cisco.com/c/zh_cn/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.pdf#1#1)。
-> 
-> RTC的核心思想是变“被动接收并丢弃”为“主动按需索取”[](https://www.cisco.com/c/zh_cn/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.pdf#1#1)。
-> 
-> RTC的工作流程主要分为三步：
-> 
-> ### 📢 第一步：PE“订阅”
-> 
-> PE设备会检查自己所有VRF下配置的**Import RT列表**，汇总成一个“我关心的路由列表”[](https://www.cisco.com/c/zh_cn/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.pdf#1#1)。
-> 
-> ### 🧾 第二步：PE“下单”
-> 
-> PE将这个列表通过一个新的BGP地址族——`rtfilter`（路由目标过滤地址族）——打包成一条特殊的**RTC路由**（RT-Constrain路由）发送给它的BGP邻居（比如RR）[](https://community.cisco.com/t5/mpls/rt-constrained-route-distribution-restrictions/td-p/3902499)[](https://www.cisco.com/c/zh_cn/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.pdf#1#1)。
-> 
-> ### 🔐 第三步：RR“按需发货”
-> 
-> 当RR收到这条RTC路由后，它会解析出里面包含的RT值，并为发出请求的PE生成一个出站路由过滤器（Outbound Route Filter）。之后，RR只会把携带这些RT值的VPN路由发送给该PE，其他无关路由则不再转发[](https://www.cisco.com/c/zh_cn/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.pdf#1#1)[](https://test-gsx.cisco.com/c/en/us/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.html)。
-> 
-> 这个机制由**RFC 4684**定义，在VRF数量庞大或PE设备众多的网络中尤其有用，能大幅提升网络的可扩展性[](https://test-gsx.cisco.com/c/en/us/support/docs/multiprotocol-label-switching-mpls/mpls/116062-technologies-technote-restraint-00.html)。
+RT 是标签，RTC 是控制标签按需分发的协议。没有 RT，RTC 就失去了控制和过滤的目标，完全失去了意义。
+
