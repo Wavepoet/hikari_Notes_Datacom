@@ -1,24 +1,20 @@
 # MPLS （Multiprotocol Label Switching，多协议标签交换）
 
-MPLS是一种结合二层交换效率与三层路由灵活性的转发技术，它通过标签来对数据包进行转发。带来的好处便是路由器进行转发时不再需要遍历IP路由表。查找标签表时可以直接使用索引查找到标签对应的下一跳信息。
+MPLS是一种结合二层交换效率与三层路由灵活性的转发技术，它通过标签来对数据包进行转发。带来的好处是，路由器在进行数据转发时不再需要遍历复杂的IP路由表，而可以直接根据标签表（通过索引）快速查找到对应的下一跳和出接口信息。
 
-后来，随着ASIC（专用集成电路）技术的迅速发展，IP路由表查找逐步改用硬件方法，处理速度大大提高，这使得MPLS在提高IP网络转发速率方面不再具备明显的优势。但仍在Qos,VPN,流量工程等方面发挥着作用。
+后来，随着ASIC（专用集成电路）技术的迅速发展，IP路由表查找逐步改用硬件方法，处理速度大大提高，这使得MPLS在提高IP网络转发速率方面不再具备明显的优势。但它仍在QoS、VPN、流量工程（TE）等方面发挥着非常重要的作用。
 
 ---
 
 ## MPLS的设备类型
 
-- CE(Customer Edge,用户边缘设备)
+- CE (Customer Edge，用户边缘设备)
 
-位于用户网络的边缘，与PE(提供商边缘设备)直接相连，CE是不会意识到MPLS的存在的，也就是说CE还是在使用路由表进行路由。只是负责将用户数据包发送到PE。
+位于用户网络的边缘，与PE（提供商边缘设备）直接相连。CE不会意识到MPLS的存在，它依然使用普通的IP路由表进行寻址和转发，仅负责将用户数据包发送到PE。
 
-- PE(Provider Edge,提供商边缘设备)/LER(Label Edge Router,标签边缘路由器)
+- PE (Provider Edge，提供商边缘设备) / LER (Label Edge Router，标签边缘路由器)
 
-位于提供商网络的边缘，与CE相连，PE是MPLS网络的入口和出口，
-
-负责将CE发送来的数据包进行标签封装，并将数据包发送到P(提供商设备)设备，
-
-同时也负责将从P接收到的数据包进行标签剥离，并将数据包发送到CE。
+位于提供商网络的边缘，与CE相连。PE是MPLS网络的入口和出口，负责将CE发送来的IP数据包封装上标签后发送到P设备，同时也负责将从P设备接收到的标签数据包剥离标签，还原成IP数据包发送到CE。
 
 - P(Provider,提供商设备)/LSR (Label Switching Router)
 
@@ -38,13 +34,13 @@ packet-beta
 24-31: "TTL"
 ```
 
-- Label(标签值)：20bit，表示一个整数，范围为0~1048575。标签值为0~15为预留标签，16~1048575为可用标签。
+- Label (标签值)：20bit，表示一个整数，范围为0~1048575。其中0~15为预留标签，16~1048575为可用标签。
 
-- TC（Traffic Class，流量类别）：3bit，用于区分数据包的优先级，在QoS……中使用。
+- TC（Traffic Class，流量类别）：3bit，用于区分数据包的优先级，在QoS等机制中使用。
 
-- S（Bottom of Stack，栈底标志）：1bit，用于判断标签是否是标签栈的最后一层。当S=1时，表示这是标签栈中的最后一个标签；当S=0时，表示后面还有标签。
+- S（Bottom of Stack，栈底标志）：1bit，用于判断当前标签是否是标签栈的最后一层。当S=1时，表示这是标签栈中的最后一个标签（即最底层标签）；当S=0时，表示后面还有其他标签。
 
-- TTL（Time to Live，生存时间）：8bit，和IP中的TTL一样。每经过一台路由器转发，TTL值减1，当TTL值减为0时，数据包将被丢弃，以防止在网络中无限循环。
+- TTL（Time to Live，生存时间）：8bit，与IP报头中的TTL功能相同。每经过一台LSR转发，TTL值减1，当TTL减为0时数据包被丢弃，防止在网络中无限循环。
 
 值得一提的是，MPLS标签并没有放在IP报文里面，也没有放在二层帧头里面，而是插入在二层帧头和IP报文头之间。因此，MPLS 在网络模型中经常放入**2.5 层**当中。
 
@@ -67,25 +63,25 @@ MPLS路由器在处理标签时只处理最外层标签，内层标签保持不�
 
 | 值 | 名称 | 作用 |
 | - | ------------------ | ----- |
-| 0 | IPv4 Explicit NULL | 保留QoS |
-| 1 | Router Alert | 控制报文 |
-| 2 | IPv6 Explicit NULL | IPv6 |
-| 3 | Implicit NULL | PHP |
+| 0 | IPv4 Explicit NULL | 显式空标签，用于保留QoS优先级信息并传递给出口PE。 |
+| 1 | Router Alert | 路由器警示标签，指示报文需要本地CPU处理（如OAM、RSVP）。 |
+| 2 | IPv6 Explicit NULL | IPv6显式空标签。 |
+| 3 | Implicit NULL | 隐式空标签，用于触发PHP（倒数第二跳弹出）。 |
 
-### PHP（Penultimate Hop Popping，倒数第二跳弹标签）
+### PHP（Penultimate Hop Popping，倒数第二跳弹出标签）
 
-字面意思，倒数第二个P就把标签去掉,以减轻出口PE负担，方便PE进行转发。提高效率。
+字面意思，在倒数第二跳P设备上就把标签弹出，以减轻出口PE在处理数据包时的查表负担，提高转发效率。
 
 ---
 
 ## LDP标签分发协议
 
-MPLS在运营商中的部署都是大批量的，此时还用人工手动的分发标签，建立映射关系是很不现实的。因此，需要自动化的标签分发协议。
+MPLS在运营商网络中的部署都是大批量的，此时若使用人工手动分发标签、建立映射关系，是非常不现实的。因此，需要自动化的标签分发协议。
 
-LDP（Label Distribution Protocol，标签分发协议）是一种基于BGP的MPLS路由协议，用于在MPLS网络中自动分发标签。
+LDP（Label Distribution Protocol，标签分发协议）是MPLS的控制协议之一，用于在MPLS网络中自动分配和分发标签。
 
->LDP使用TCP/UDP的646端口。TCP端口用于交换LDP消息，UDP端口用于建立LDP邻接体。
->LDP使用组播地址 224.0.0.2。
+> LDP使用TCP/UDP的646端口。TCP端口用于建立会话并交换LDP消息，UDP端口用于邻居发现和建立LDP邻接体。
+> LDP发现报文使用组播地址224.0.0.2。
 
 ### FEC（Forwarding Equivalence Class，转发等价类）
 
@@ -103,17 +99,17 @@ LDP会将FEC与标签进行绑定，并告知网络中的其他邻居。
 
 LDP邻接体分为两种类型：
 
-- 本地邻接体（Local Adjacency）：链路Hello消息发现的邻接体叫做本地邻接体，通常建立本地邻接体的设备是直连的。
+- 本地邻接体（Local Adjacency）：通过链路Hello消息发现的邻接体，通常建立在直连的物理设备之间。
 
-- 远端邻接体（Remote Adjacency）：Target Hello消息发现的邻接体叫做远端邻接体。通常建立远端邻接体的设备是不直连的。
+- 远端邻接体（Remote Adjacency）：通过Targeted Hello消息发现的邻接体，通常建立在非直连的逻辑对等体之间。
 
 - **对等体(Peer)**
 
-当设备通过Hello报文拿到Transport Address（LSR ID）后，会对其发起TCP连接,三次握手成功后对等体建立。
+当设备通过Hello报文获取到对方的Transport Address（传输地址，即LSR ID）后，会向其发起TCP三次握手连接，连接成功后对等体建立。
 
 - **会话 (Session)**
 
-会话是指对等体建立的TCP连接，两个对等体之间，只会建立一个 LDP 会话。
+会话是指对等体之间建立的TCP连接。两个LDP对等体之间只会建立一个LDP会话。
 
 ### LDP的数据包类型
 
@@ -125,9 +121,9 @@ LDP邻接体分为两种类型：
 
   Hello 包又分为两种：
   
-  * **Link Hello**：通过链路发现邻居，携带的Transport Address是接口IP地址。TTL一般=1，用于直连邻居。
+  * **Link Hello**：通过链路发现邻居，携带的Transport Address通常是接口IP地址。TTL一般为1，用于直连邻居。
 
-  * **Target Hello**：通过目标地址发现邻居，携带的 Transport Address 是 LSR ID。TTL一般>1，用于远程邻居。
+  * **Targeted Hello**：通过目标地址发现邻居，携带的 Transport Address 是 LSR ID。TTL一般大于1，用于远程邻居。
 
 - **Initialization Message**
 
@@ -139,11 +135,11 @@ LDP邻接体分为两种类型：
 
 - **Notification Message**
 
-用于通知对等体发生了异常情况，如果收到的为Advisory(建议)类型Notification Message，则表示出现非致命性错误，会话仍会保持。如果收到的为Fatal(致命)类型Notification Message，会话将被关闭。
+  用于通知对等体发生了异常情况。如果收到的为Advisory（建议）类型Notification Message，则表示出现非致命性错误，会话仍会保持；如果收到的为Fatal（致命）类型Notification Message，会话将被关闭。
 
 - **公告类消息**
   
-  这类消息主要用于用于创建、改变和删除标签 FEC 的映射。
+  这类消息主要用于创建、改变和删除标签与 FEC 的映射关系。
 
   * **Address Message**:
 
@@ -179,7 +175,7 @@ LDP Message Types
 ├── Discovery
 │   └── Hello
 │         ├──Link Hello
-│         └──Target Hello
+│         └──Targeted Hello
 │
 ├── Session
 │   ├── Initialization
@@ -236,9 +232,9 @@ LDP路由器互相收到Hello报文后，建立LDP邻接体。此时，设备知
 
 TCP连接建立后，传输地址大的一方会发送Initialization报文，协商LDP版本、Keepalive时间、标签发布方式等参数。被动方收到后，如果接受这些参数，就回复Initialization报文和Keepalive报文。主动方再回复Keepalive。
 
-至此，LDP会话Session正式建立状态机进入Operational状态。
+至此，LDP会话Session正式建立，状态机进入Operational状态。
 
->LDP简路由器在建立对等体关系后，会周期性的发送hello包保持对等体关系。
+> LDP路由器在建立对等体关系后，会周期性地发送Hello包保持对等体关系。
 
 ```mermaid
 sequenceDiagram
@@ -280,7 +276,7 @@ sequenceDiagram
 
   - 分配标签
 
-    LER为这个会为FEC分配一个标签，假如这个标签是3。
+    LER会为该FEC分配一个标签，例如3。
 
   - 通告
 
@@ -346,25 +342,23 @@ LDP路由器的默认模式。只要是邻居发来的标签，统统保存在�
 
 只保留最优IGP下一跳发来的标签。其余直接丢弃（发送 Label Release 释放掉）。
 
-### 大大大大前提
+### 大前提
 
-首先，MPLS和VPN等协议一样，都是依赖于下层的路由协议的，所以在建立标签转发路径之前路由先得通。
+首先，MPLS和VPN等协议一样，都是依赖于下层的路由协议的，所以在建立标签转发路径（LSP）之前，底层路由必须先通。
 
 ### 标签的转发
 
-MPL设备对标签的转发主要有三种操作：
+- 压入（Push）
 
-- 压入（push）
+  通常发生在入节点（Ingress），路由器收到一个普通的IP报文，根据目的IP地址查表后，为其打上一个或多个MPLS标签。
 
-通常发生在入节点，路由器收到一个普通的IP报文，根据目的IP地址查表后，为其打上一个或多个MPLS标签。这个操作被称为压入。
+- 交换（Swap）
 
-- 交换（swap）
+  当一个MPLS标签数据包经过一个中转节点（Transit）时，路由器根据标签查表，将最外层标签替换成由下游分配的新标签。
 
-当一个MPLS标签数据包经过一个中转节点时，路由器根据标签查表后，可能需要将原有的标签替换成新的标签，这个操作被称为交换。
+- 弹出（Pop）
 
-- 弹出（pop）
-
-通常发送在出节点，路由器收到一个MPLS标签数据包，根据标签查表后，发现自己是目的地或者需要将标签去掉后转发，这个操作被称为弹出。
+  通常发生在出节点（Egress），路由器收到一个MPLS标签数据包，弹出标签后将其还原成普通数据包进行转发。
 
 ## 流量工程（TE）概述
 

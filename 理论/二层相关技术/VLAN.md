@@ -8,7 +8,7 @@ VLAN可以将一个LAN划分为多个VLAN，每个VLAN是一个广播域， VLAN
 
 ## **VLAN Tag（VLAN标签）**
 
-IEEE 802.1Q定义了VLAN Tag，配置VLAN后，交换机在以太网的头部的S address和length/Type之间插入4字节的VLAN标签标识帧所属的VLAN。接收端交换机根据标签决定如何处理帧。
+IEEE 802.1Q定义了VLAN Tag。配置VLAN后，交换机在以太网帧头部的源MAC地址（Source MAC Address）和Length/Type之间插入4字节的VLAN标签，以标识帧所属的VLAN。接收端交换机根据标签决定如何处理帧。
 
 封装过VLAN Tag的数据帧
 
@@ -25,7 +25,7 @@ packet-beta
 176-207: "FCS"
 ```
 
-Vlan Tag
+VLAN Tag
 
 ```mermaid
 packet-beta
@@ -48,7 +48,7 @@ title 802.1Q VLAN Tag 详细结构
 
 ## **VLAN ID（VID）**
 
-VLAN ID是VLAN Tag中最关键的一部分，它标识了这个数据帧所属的VLAN，理论上限为122=4096个，但实际可用范围是VLAN1—4094。缺省情况下所以接口属于VLAN 1。
+VLAN ID是VLAN Tag中最关键的一部分，它标识了这个数据帧所属的VLAN，理论上限为2^12=4096个，但实际可用范围是VLAN 1—4094。缺省情况下所有接口属于VLAN 1。
 
 特殊VLAN
 
@@ -111,7 +111,7 @@ Switch(config-if)# service-policy input QOS-POLICY
 
 发送数据帧时：
 
-交换机总是会移除VLAN标签后再将数据帧发送出去，终端不处理VLAN Tag终端设备收到的永远是不带VLAN Tag的标准以太网帧。
+交换机总是会移除VLAN标签后再将数据帧发送出去。由于终端不处理VLAN Tag，终端设备收到的永远是不带VLAN Tag的标准以太网帧。
 
 一个Access端口只能属于一个VLAN
 
@@ -134,13 +134,13 @@ graph TD
 
 如果为无标签帧则为其添加Trunk端口的原生VLAN（Native VLAN）
 
-如果收到带标签帧则判断VLAN ID是否在允许通了列表中，是则放行，不是则丢弃。
+如果收到带标签帧则判断VLAN ID是否在允许通过列表中，是则放行，不是则丢弃。
 
 发送数据帧时：
 
-于非原生VLAN的帧，保留VLAN标签并发送，对于原生VLAN帧缺省情况下，移除VLAN标签后发送。
+对于非原生VLAN的帧，保留VLAN标签并发送；对于原生VLAN的帧，在缺省情况下，移除VLAN标签后发送。
 
-一个Trunk端口可以属于多个VLAN，（感觉不严谨）可以让多个VLAN的流量通。
+一个Trunk端口可以属于多个VLAN，能够让多个VLAN的流量通过。
 
 ```mermaid
 graph TD
@@ -165,13 +165,11 @@ Hybrid端口是一种混合型端口，整合了Access端口和Trunk端口的特
 
 如果为无标签帧则为该帧归入Hybrid端口的PVID。
 
-如果收到带标签帧则判断VLAN ID是否在允许通了列表中，是则放行，不是则丢弃。
+如果收到带标签帧则判断VLAN ID是否在允许通过列表中，是则放行，不是则丢弃。
 
 发送数据帧时：
 
-对于需要不带标签传输的VLAN，移除VLAN标签后发送对
-
-于需要带标签传输的VLAN，保留VLAN标签并发送
+对于需要不带标签传输的VLAN，移除VLAN标签后发送；对于需要带标签传输的VLAN，保留VLAN标签并发送。
 
 ```mermaid
 graph TD

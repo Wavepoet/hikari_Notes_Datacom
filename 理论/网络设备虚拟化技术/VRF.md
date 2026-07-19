@@ -30,23 +30,21 @@ Linux内核本身有能力维护多张独立的RIB和FIB，只需要将每张表
 
 ### **NEWNET Namespaces（网络命名空间）**
 
-RPDB和多路由表只对网络层进行了隔离，但套接字Socket、ARP表等网络资源还是全局共享的。Namespaces便用与此的隔离。
+RPDB和多路由表只对网络层进行了隔离，但套接字Socket、ARP表等网络资源还是全局共享的。Namespace便是用于此类隔离的技术。
 
-Namespace是由linux内核所提供的资源隔离机制，它可以将不同的资源放入同一个Namespace当中对其进行隔离，并且可以对一些运行需要的系统资源实现虚拟化，Namespace与其他Namespace之间的资源互不干扰。
+Namespace是由Linux内核所提供的资源隔离机制，它可以将不同的资源放入同一个Namespace当中对其进行隔离，并且可以对一些运行需要的系统资源实现虚拟化，Namespace与其他Namespace之间的资源阻断、互不干扰。
 
-内核通过``clone()`` 系统调用创建进程时，传入``CLONE_NEWNET``标志,为VRF创建一个网络命名空间。
+内核通过``clone()`` 系统调用创建进程时，传入``CLONE_NEWNET``标志，为VRF创建一个网络命名空间。
 
 ---
 
 ## OS中的原生VRF
 
-### **L3 Master Device**
+在Linux 4.3中引入了轻量级的原生VRF支持——VRF Netdev。在这里，VRF在内核中被抽象成了一个虚拟的网络接口（L3 Master Device），可以把物理接口作为Slave挂载到这个VRF接口下。
 
-在Linux 4.3中引入了轻量级的原生VRF支持--VRF Netdev，在这里VRF在内核中被抽象成了一个虚拟的网络接口（L3 Master Device）。可以把物理接口作为Slave挂载到这个VRF接口下。
+在L3 Master Device下，所有的VRF都运行在同一个全局网络命名空间下。这便又出现了之前的问题：套接字Socket、ARP表该如何隔离？
 
-在L3 Master Device下，所有的VRF都运行在同一个全局网络命名空间下。这便又出现了之前的问题:套接字Socket、ARP表该如何隔离？
-
-在Linux内核的sock结构体中，有一个字段叫``sk_bound_dev_if(Socket 绑定设备索引)``。它是Linux内核源码struct sock里的一个整数型字段，它存储的是一个 ifindex（接口索引号）。当它的值为0时，代表全局可用；当它大于0时，表示他与某个网络接口绑定。后续的隔离，验证中都会使用到这个值或者继承这个值的值。
+在Linux内核的sock结构体中，有一个字段叫``sk_bound_dev_if（Socket 绑定设备索引）``。它是Linux内核源码struct sock里的一个整数型字段，存储的是一个 ifindex（接口索引号）。当它的值为0时，代表全局可用；当它大于0时，表示它与某个网络接口绑定。后续的隔离、验证中都会使用到这个值或者继承这个值。
 
 ![svg2](images/VRF_images/linux_vrf_l3master_isolation.svg                                                   )
 
@@ -54,9 +52,9 @@ Namespace是由linux内核所提供的资源隔离机制，它可以将不同的
 
 >在全局命名空间下，所有的TCP/UDP Socket都挂在同一棵内核哈希树上。
 
-当一个属于VRF-A的应用程序创建Socket时，必须调用``setsockopt``使用 ``SO_BINDTODEVICE``参数，将这个Socket强行绑定到VRF-A的VRF Master接口上。内核Socket结构体中的``sk_bound_dev_if``字段上就会被设置为VRF-A接口的索引号。(类似为这个Socket打上了Tag以方便辨别)
+当一个属于VRF-A的应用程序创建Socket时，必须调用``setsockopt``使用 ``SO_BINDTODEVICE``参数，将这个Socket强行绑定到VRF-A的VRF Master接口上。内核Socket结构体中的``sk_bound_dev_if``字段就会被设置为VRF-A接口的索引号。（这类似于为该Socket打上了Tag以方便辨别）
 
-引入VRF功能后，内核的负责在收到数据包时寻找对应Socket的函数``inet_lookup``逻辑被重写了，旧的逻辑为只检测``源IP、目的IP、源端口、目的端口``四元组。
+引入VRF功能后，内核中负责在收到数据包时寻找对应Socket的函数``inet_lookup``的逻辑被重写了。旧的逻辑为只检测``源IP、目的IP、源端口、目的端口``四元组。
 
 重写后逻辑：
 
@@ -111,9 +109,9 @@ BPF的介入是为了解决老旧程序的兼容性问题。
 
 ### **基于ifindex的复合键值**
 
-在L3 Master Device架构下，整个Namespace依然只有一张全局的邻居表。在此使用了基于ifindex的复合键值对其进行隔离。（类似MPLS VPN的RD）
+在L3 Master Device架构下，整个Namespace依然只有一张全局的邻居表。为此，Linux使用了基于ifindex的复合键值来对其进行隔离（类似于MPLS VPN中的RD）。
 
-在Linux内核的邻居表中，一个ARP表项的Key改为了``IP 地址 + Interface Index``。
+在Linux内核的邻居表中，一个ARP表项的Key改为了``IP地址 + Interface Index``。
 
 假设eth1属于vrf-a，eth2属于vrf-b，它们对端连接的设备IP都是192.168.1.100。
 
@@ -159,7 +157,7 @@ sk_buff (Socket Buffer) 代表了一个游走在协议栈中的数据包。L3 Ma
 
 - **Ingress (入方向)**：
 
-物理网卡eth1收到包，生成sk_buff。在进入网络层之前，内核的 l3mdev钩子会触发。它发现eth1是一个Slave设备，于是它将这个sk_buff的L3域指针强行切换为 Master 设备（vrf-a）。接下来的 ip_route_input 就会乖乖去查 vrf-a 绑定的那张独立路由表。
+物理网卡eth1收到包，生成sk_buff。在进入网络层之前，内核的 l3mdev 钩子会被触发。它发现eth1是一个Slave设备，于是将这个sk_buff的L3域指针强行切换为 Master 设备（vrf-a）。接下来的 ip_route_input 就会去查找 vrf-a 绑定的那张独立路由表。
 
 - **Egress (出方向)**：
 
@@ -205,7 +203,7 @@ ip rule add iif vrf-b to 10.1.1.0/24 lookup 10
 
 - **FRR 路由引入**
 
-如果你在 Linux 上部署了白盒交换机架构\或使用 FRRouting (FRR) 作为控制面,可以利用 BGP/OSPF 守护进程在不同 VRF 实例之间动态泄露路由。
+如果你在 Linux 上部署了白盒交换机架构，或使用 FRRouting (FRR) 作为控制面，可以利用 BGP/OSPF 守护进程在不同 VRF 实例之间动态泄露路由。
 
 FRR的zebra守护进程会自动将这种高级别的``import``意图，转换为Linux内核底层的``ip route``和``Netlink``调用。它会自动监听vrf-b路由表的变化，并动态地在 vrf-a的路由表中写入带有dev vrf-b的内核路由条目。
 

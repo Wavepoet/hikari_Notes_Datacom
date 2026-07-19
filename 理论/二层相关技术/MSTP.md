@@ -1,16 +1,16 @@
 # MSTP（多生成树，Multiple Spanning Tree Protocol）
 
-802.1s定义了MSTP协议，MSTP允许多个生成树的实例，解决了STP和RSSTP中，阻塞链路正常情况没不转发数据这一点。
+802.1s定义了MSTP协议，MSTP允许多个生成树实例，解决了STP和RSTP中，阻塞链路在正常情况下不转发数据的问题。
 
 ![image1.png](images/MSTP/image1.png)
 
-在MSTP中，通过把整个互联的二层网络划分成若干个域。在域内，把其中的vlan分成若干组，每组具有相同的拓扑结构，然后定义若干个MSTI，并把这些生成树实例和不同的vlan映射起来。
+在MSTP中，整个互联的二层网络被划分成若干个域。在域内，把其中的VLAN分成若干组，每组具有相同的拓扑结构，然后定义若干个MSTI，并把这些生成树实例和不同的VLAN映射起来。
 
 ## MSTI(MST实例)
 
-在MSTP中，一个MSTI是一个单独的计算单元，每给MSTI都有自己的根桥，端口角色……
+在MSTP中，一个MSTI是一个单独的计算单元，每个MSTI都有自己的根桥，端口角色……
 
-通俗点说，一个MSTI就是一颗独立的生成树，MSTP通过构建多个MSTI来实现不同VLAN的负载均衡和冗余。
+通俗点说，一个MSTI就是一棵独立的生成树，MSTP通过构建多个MSTI来实现不同VLAN的负载均衡和冗余。
 
 MSTI由Instance ID标识，范围为0-4096，实例0为默认实例，所有未映射的VLAN均关联到此实例。虽然标准定义了很高的理论上限，但实际可用的实例数通常由交换机的硬件和软件决定。
 
@@ -18,7 +18,7 @@ MSTI由Instance ID标识，范围为0-4096，实例0为默认实例，所有未�
 
 ## MST Region（MST区域）
 
-MST区域是由一组具有相同MST配置的交换机组成以及它们之间的网段的集合。通过Region Name，Revision Level，VLAN-to-Instance Mapping Table三个参数标识。三个参数相同的交换机才能属于同一个MST区域：
+MST区域是由一组具有相同MST配置的交换机以及它们之间的网段构成的集合。通过Region Name，Revision Level，VLAN-to-Instance Mapping Table三个参数标识。这三个参数相同的交换机才能属于同一个MST区域：
 
 - **Region Name（域名）**
 
@@ -40,21 +40,21 @@ MST区域是由一组具有相同MST配置的交换机组成以及它们之间�
 
 ### IST(内部生成树)
 
-IST是一个MST区域内的生成树，MSTI ID为0，责把同一个 MST 域内的所有交换机连接起来，并消除域内的物理环路。所有MSTI都要依赖于IST来进行计算和转发。
+IST是一个MST区域内的生成树，MSTI ID为0，负责把同一个 MST 域内的所有交换机连接起来，并消除域内的物理环路。所有MSTI都要依赖于IST来进行计算和转发。
 
 - IST的根桥为**区域根（Regional Root）**（MSTI 0中BID最小的交换机）。
 
-- 域内距离总根最近的交换设备为**主桥（Master Bridge，IST Maste）**。
+- 域内距离总根最近的交换设备为**主桥（Master Bridge，IST Master）**。
 
 ### CST（公共生成树）
 
-cst 是连接所有MST域的单树，将每个域视为虚拟交换机。
+CST 是连接所有MST域的单树，将每个域视为虚拟交换机。
 
 本质上是一棵连接各个MST区域的骨干树。
 
 ### CIST（公共内部生成树）
 
-CIST是整个网络中所有设备的总集。由IST和CST组合构成的全网唯一生成树，连接了一个交换网络内所有交换设备。根桥为**总根（CIST Root）**（全网BID最小的交换机）
+CIST是整个网络中所有设备的总集，是由IST和CST组合构成的全网唯一生成树，连接了一个交换网络内所有交换设备。根桥为**总根（CIST Root）**（全网BID最小的交换机）
 
 ### SST(单生成树)
 

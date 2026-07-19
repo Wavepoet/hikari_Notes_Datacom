@@ -1,6 +1,6 @@
 # IKE（Internet Key Exchange，因特网密钥交换）
 
-IKE 是一个密钥协商协议，用于在不可信网络中安全协商、建立与维护 SA（Security Association），并完成身份认证与密钥派生。IKE 最初由 RFC 2409 定义，现行推荐版本为 IKEv2（RFC 7296），IKEv2大大的简化了IKEv1中的握手过程。此篇主要讲述IKEv1。
+IKE 是一个密钥协商协议，用于在不可信网络中安全协商、建立与维护 SA（Security Association），并完成身份认证与密钥派生。IKE 最初由 RFC 2409 定义，现行推荐版本为 IKEv2（RFC 7296），IKEv2大大地简化了IKEv1中的握手过程。此篇主要讲述IKEv1。
 
 - IKE是基于UDP的一种应用层混合协议，常用端口 500（协商）与 4500（NAT-T）。由 ISAKMP、Oakley、SKEME 三种协议构成：
   - ISAKMP 定义交换框架与报文结构
@@ -9,7 +9,7 @@ IKE 是一个密钥协商协议，用于在不可信网络中安全协商、建�
   
   - SKEME 提供多样的密钥交换与认证模式（公钥、对称、混合）
 
-在IKE中，并不是完全引用这三个协议的全部机制内容，而且选择性的采用。
+在IKE中，并不是完全引用这三个协议的全部机制内容，而是选择性地采用。
 
 ---
 
@@ -24,23 +24,23 @@ IKE 是一个密钥协商协议，用于在不可信网络中安全协商、建�
 
 - IKE SA
 
-IKE SA在IKE第一阶段建立。IKE SA用于认证对方设备身份并准备协商IPsec SA。KE SA的建立是IPsec SA的大前提，类似于管理通道。
+IKE SA在IKE第一阶段建立。IKE SA用于认证对方设备身份并准备协商IPsec SA。IKE SA的建立是IPsec SA的大前提，类似于管理通道。
 
 - IPSec SA
 
-IPsec SA在IKE第二阶段建立，IPsec SA用于实际的传输信息，保护实际的用户数据，例如用户访问web的浏量等。类似传输隧道。
+IPsec SA在IKE第二阶段建立，IPsec SA用于实际的传输信息，保护实际的用户数据，例如用户访问Web的流量等。类似传输隧道。
 
 ---
 
-## ISAKMP（Internet Security Association and Key Management Protocol，英特网安全关联密钥管理协议）
+## ISAKMP（Internet Security Association and Key Management Protocol，因特网安全关联和密钥管理协议）
 
-ISAKMP定义了协商、建立、修改和删除SA的过程和包格式。让IPsec路由器知道该如何“说话”。一般使用UDP 500端口进行通讯。
+ISAKMP定义了协商、建立、修改和删除SA的过程和包格式。用于让IPsec路由器知道该如何“说话”。一般使用UDP 500端口进行通信。
 
-注意！ISAKMP只作为IKE的一个框架，为后续SA的建立做准备，并没有SA相关的信息， ISAKMP由RFC2408定义。
+注意！ISAKMP只作为IKE的一个框架，为后续SA的建立做准备，并没有SA相关的信息，ISAKMP由RFC 2408定义。
 
-### **载荷（待补充）**
+### **载荷**
 
-SAKMP的有效载荷由载荷头和载荷组成，双方交换的信息被称为载荷，ISAKMP目前定义了13种载荷。
+ISAKMP的有效载荷由载荷头和载荷组成，双方交换的信息被称为载荷，ISAKMP目前定义了13种载荷。
 
 由于本人才疏学浅（懒）在此只写出几种较为重要的载荷。详见[RFC 2408：互联网安全协会和密钥管理协议 （ISAKMP）](https://www.rfc-editor.org/rfc/rfc2408#section-3.1)。
 
@@ -114,19 +114,19 @@ packet-beta
 
 用于标识当前载荷的提议编号，在一个SA载荷中唯一标识一个提案。
 
-- **Protocol ID（协议标识符号）**
+- **Protocol ID（协议标识符）**
 
-指定该提案适用于哪种安全协议，例如IPSec，ESP，OSPF，TLS等。
+指定该提案适用于哪种安全协议，例如IPsec、ESP、AH等。
 
 - **SPI Size（安全参数索引长度）**
 
-SPI的大小，如果 SPI 大小不为零，则必须忽略 SPI 字段的内容。如果 SPI 大小不是 4 个字节的倍数，它将对 SPI 字段和消息中所有负载的对齐产生影响。解释域（DOI）将决定其他协议的 SPI 大小。
+SPI的大小，以字节为单位。
 
-- **of Transforms（转换数量）**
+- **# of Transforms（转换数量）**
 
-标识该提案中包含多少给“转换载荷”。
+标识该提案中包含多少个“转换载荷”。
 
-- **SPI（安全产索引）**
+- **SPI（安全参数索引）**
 
 发送方的SPI，SPI用于唯一标识安全关联（SA），接收方可以根据SPI快速确定SA和解密验证参数。
 
@@ -143,16 +143,13 @@ packet-beta
 0-7: "Next Payload"
 8-15: "RESERVED"
 16-31: "Payload Length"
-32-39: "Proposal #"
-40-47: "Protocol ID"
-48-55: "SPI Size"
-56-63: "# of Transforms"
-64-95: "SPI (Variable Length)"
+32-63: "Key Exchange Data (可变长度) - Part 1"
+64-95: "Key Exchange Data - Part 2"
 ```
 
-- **Key exchange Data（密钥交换数据）**
+- **Key Exchange Data（密钥交换数据）**
 
-成会话密钥所需的数据。该数据的解释由 DOI 和相关密钥交换算法指定。此字段还可能包含预置的密钥指示符
+生成会话密钥所需的数据。该数据的解释由 DOI 和相关密钥交换算法指定。此字段还可能包含预置的密钥指示符。
 
 ### **身份标识载荷（ID Payload）**
 
@@ -164,11 +161,9 @@ packet-beta
 0-7: "Next Payload"
 8-15: "RESERVED"
 16-31: "Payload Length"
-32-39: "Proposal #"
-40-47: "Protocol ID"
-48-55: "SPI Size"
-56-63: "# of Transforms"
-64-95: "SPI (Variable Length)"
+32-39: "ID Type"
+40-63: "DOI Specific ID Data (3B)"
+64-95: "Identification Data (可变长度)"
 ```
 
 - **ID Type（ID类型）**
@@ -191,7 +186,7 @@ ID的类型，ID载荷支持多种不同的身份标识，这使得IPSec可以�
 
 - **DOI Specific ID Data（DOI特定ID数据）**
 
-在IPsec DOI中未使用，所以 通常为0。
+在IPsec DOI中未使用，所以通常为0。
 
 - **Identification Data（ID数据）**
 
@@ -201,7 +196,7 @@ ID的类型，ID载荷支持多种不同的身份标识，这使得IPSec可以�
 
 在固定的ISAKMP消息头部中有着Next Payload(下一个载荷)这一字段, 用于指出紧跟在当前载荷后面的下一个载荷的类型。这个过程像链条一样，一环扣一环，直到最后一个载荷，其 “下一个载荷” 字段的值为 0（或 "None"），表示链条结束。
 
-这种设计可以提高协议的灵活性和扩展性。（个人感觉）主要还是服务于IKE不同模式的切换，载荷链式结构可以将不同载荷拼接在一起，不用像其他协议一样搞得那么复杂，当需要添加新的协议内容是，可以新增加载荷类型而不改变协议本身即可。
+这种设计可以提高协议的灵活性和扩展性。主要还是服务于IKE不同模式的切换，载荷链式结构可以将不同载荷拼接在一起，不用像其他协议一样搞得那么复杂，当需要添加新的协议内容时，可以新增加载荷类型而不改变协议本身。
 
 ### **未写载荷**
 
@@ -417,8 +412,8 @@ sequenceDiagram
 
 - 协商过程
     1. 发送方会将`SA 提议`，`g^x`，`Ni`，`IDi` 一起打包发送给响应方。
-    2. 响应方收到消息后，便拥有了计算共享密钥，此时会选择支持的SA策略。进行DH共享密钥计算，计算出自己的认证哈希。随后将`SA 接受` ，`g^y` ， `Nr`  ， **`IDr`**  ， `HASH_R`  打包发送给发送方。
-    3. 发起方收到消息后，也经过和响应方同样过程身份认证，随后发送自己的`HASH_I` 给响应方。响应方收到后完成对身份的认证。
+    2. 响应方收到消息后，便拥有了计算共享密钥的材料，此时会选择支持的SA策略。进行DH共享密钥计算，计算出自己的认证哈希。随后将`SA 接受` ，`g^y` ， `Nr` ， **`IDr`** ， `HASH_R` 打包发送给发送方。
+    3. 发起方收到消息后，也经过与响应方相同的身份认证过程，随后发送自己的`HASH_I` 给响应方。响应方收到后完成对身份的认证。
 - 过程图：
 
 ```mermaid
@@ -442,7 +437,7 @@ sequenceDiagram
 
 ## IKE二阶段交互
 
-IKE第二阶段的主要任务是建立IPSec SA，第二阶段只有快速模式一个模式，由SKEME提供快速重钥的思想，第二阶段由3个数据包完成。
+IKE第二阶段的主要任务是建立IPSec SA，第二阶段只有快速模式一个模式，由SKEME提供快速重密钥的思想，第二阶段由3个数据包完成。
 
 第二阶段需要完成共识：
 
@@ -457,28 +452,28 @@ IKE第二阶段的主要任务是建立IPSec SA，第二阶段只有快速模式
 1. 发起方向响应方发送一条消息，包含`哈希负载HDR`，`IPsec SA提议`，`Ni`和`感兴趣流`。如果启用PFS则会包含新的DH公共值`g^x`。
 2. 响应方收到第一条消息后会：解密并验证HDR的正确性。从发起方的SA提议列表中，选择一个SA。检查发起方定义的感兴趣流是否与本地策略匹配。此时，如果启用了PFS，会进行DH计算。
 检查无误后会发送自己的`HDR`，`IPsec SA确认`，`Nr`和`感兴趣流` ，同样的，如果启用PFS则会包含新的DH公共值`g^y`。
-3. 发送方收到第二条消息后，会进行响应方一样操作。检查无误后会计算出一个`最终哈希值`并发送给响应方，作为对整个快速模式交换的确认。
+3. 发送方收到第二条消息后，会进行与响应方相同的操作。检查无误后会计算出一个`最终哈希值`并发送给响应方，作为对整个快速模式交换的确认。
 
 过程图：
 
 ```mermaid
 sequenceDiagram
-    participant I as 发送方 (Initiator)
+    participant I as 发起方 (Initiator)
     participant R as 响应方 (Responder)
 
-    Note over I, R: 一次性发送所有交换材料 (协商+密钥+身份)
-    I->>R: SA提议, g^x, Ni, IDi
+    Note over I, R: 快速模式第 1 条消息 (IPsec SA 提议、随机数等)
+    I->>R: HDR, HASH_1, SA提议, Ni [, KE_I] [, ID_I]
     
-    Note over R: 计算密钥并验证身份
-    R->>I: SA接受, g^y, Nr, IDr, HASH_R
+    Note over I, R: 快速模式第 2 条消息 (确认 SA 提议并回应随机数)
+    R->>I: HDR, HASH_2, SA确认, Nr [, KE_R] [, ID_R]
     
-    Note over I: 验证响应方身份
-    I->>R: HASH_I
+    Note over I, R: 快速模式第 3 条消息 (确认交换完毕)
+    I->>R: HDR, HASH_3
 ```
 
 ---
 
-## 三种协议的关
+## 三种协议的关系
 
 ![IKE1.png](images/IKE1.png)
 
@@ -510,4 +505,4 @@ ChatGPT-5
 
 Claude 4
 
-DeepSeep R1
+DeepSeek R1

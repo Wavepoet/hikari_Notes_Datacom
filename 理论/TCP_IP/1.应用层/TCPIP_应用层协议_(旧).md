@@ -26,11 +26,9 @@ graph LR
     B--(访问IP)-->C[互联网]
 ```
 
-| 命令 | 备注 |
-| --- | --- |
 | nslookup | DNS调试工具 |
-| Ipconfig/displaydns | 查看DNS缓存 |
-| Ipconfig/flushdns | 清空DNS缓存 |
+| ipconfig /displaydns | 查看DNS缓存 |
+| ipconfig /flushdns | 清空DNS缓存 |
 
 ## **4. DNS 查询方式**
 
@@ -46,7 +44,7 @@ graph LR
 **迭代查询过程：**
 ```mermaid
 graph LR
-    A[本地域名服务器]--（1）-->B[跟域名服务器]
+    A[本地域名服务器]--（1）-->B[根域名服务器]
     B--(2)-->A
     A--(3)-->C[顶级域名服务器]
     C--(4)-->A
@@ -57,7 +55,7 @@ graph LR
 **递归查询过程：**
 ```mermaid
 graph LR
-    A[本地域名服务器]--（1（查询失败））-->B[跟域名服务器]
+    A[本地域名服务器]--（1（查询失败））-->B[根域名服务器]
     B--(2（查询失败）)-->C[顶级域名服务器]
     C--(3（查询失败）)-->D[权限域名服务器]
     D--（4（查询成功））-->C
@@ -99,23 +97,23 @@ graph LR
 | --- | --- |
 | **post** | 在Request-URI所标识的资源后**增加新的数据** |
 | **head** | 请求获取由Request-URI所标识的资源的响应消息报头 |
-| **put** | 请求服务器**存储或修改一个资源**，并用Request-UR作为其标识 |
-| **delete** | 请求服务器**删除**Request-UR所标识的资源 |
+| **put** | 请求服务器**存储或修改一个资源**，并用Request-URI作为其标识 |
+| **delete** | 请求服务器**删除**Request-URI所标识的资源 |
 | **trace** | 请求服务器**回复收到的请求信息**，主要用于测试 |
 | **connect** | 保留将来使用 |
-| **opptions** | 请求查询服务器的性能，或者查询与资源相关的选项和需求 |
+| **options** | 请求查询服务器的性能，或者查询与资源相关的选项和需求 |
 
 ### **URL：统一资源定位符**
 
 URL是对可以从互联网上得到的资源的位置和访问方法的一种简洁的表示，互联网上的每个文件都有一个唯一的URL，它包含的信息指出文件的位置以及浏览器应该怎处理它。**URL是web页的地址。**
 
-URL由3个主要的部分构成：**协议**，**服务器地址**和**具体地址**
+URL由3个主要的部分构成：**协议**、**服务器地址**和**具体地址**
 
-- **协议**是告诉我们自己面对的是何种类型的Internet资源。
-- 存有该资源所在的**服务器的名称**或**IP地址**(包括端口号);
-- 主机资源的**具体地址**
+- **协议**：告诉我们自己面对的是何种类型的Internet资源。
+- 存有该资源所在的**服务器的名称**或**IP地址**（包括端口号）。
+- 主机资源的**具体地址**。
 
-### 格式;
+### 格式：
 scheme://host[:port#]/path/…/[;url-params][?query-string][#anchor]
 
 
@@ -164,7 +162,7 @@ Web上可用的每种资源都由一个通用资源标识符（URI）进行定�
 ```bash
 #状态行
 
-HTTP/1.1 200 0K
+HTTP/1.1 200 OK
 #消息头部
 Date: Sat, 31 Dec 2005 23:59:59 GMT
 Content-Type: text/html;charset=ISO-8859-1
@@ -196,11 +194,11 @@ Content-Length: 122
 
 [**HTTP 状态码 | 菜鸟教程 (runoob.com)**](https://www.runoob.com/http/http-status-codes.html)
 
-# **SMTP与POP3,IMAP: 邮件服务**
+## **SMTP与POP3、IMAP：邮件服务**
 
 ## **邮件系统的组成结构**
 
-电子邮件是一种**异步通信方式**，通信时不需要双方同时在场，发送者把邮件发送到收件人使用的邮件服务器，并放在其中的收件人邮箱中，收件人可以随时上网到自己使用的邮件服务器进行读取
+电子邮件是一种**异步通信方式**，通信时不需要双方同时在场。发送者把邮件发送到收件人使用的邮件服务器，并放在其中的收件人邮箱中，收件人可以随时上网到自己使用的邮件服务器进行读取。
 
 ### **Email的构成组件**
 
@@ -224,27 +222,27 @@ graph LR
 
 ## **SMTP：简单邮件传输协议**
 
-用于发送邮件，它使用TCP**可靠传输服务**,SMTP采用的是**“推”(Push)**的通信方式，即在用户代理向邮件服务器发送邮件及在邮件服务器之间发送邮件时，**SMTP客户端主动将邮件“推”送到SMTP服务器端**
+用于发送邮件，它使用TCP**可靠传输服务**。SMTP采用的是**“推”(Push)**的通信方式，即在用户代理向邮件服务器发送邮件及在邮件服务器之间发送邮件时，**SMTP客户端主动将邮件“推”送到SMTP服务器端**。
 
-### **通讯过程**
+### **通信过程**
 
-运行**SMTP客户进程**，具体显示为**C**，运行**SMTP服务器进程**，具体显示为**S**
+运行**SMTP客户进程**，具体显示为**C**，运行**SMTP服务器进程**，具体显示为**S**。
 
-### **1.建立通讯**
+### **1. 建立通信**
 
 ```bash
 S：220 hamburger.edu
 
 C：HELO crepes.fr
 
-S：250 Hello crepes.fr, pleased to meet you .
+S：250 Hello crepes.fr, pleased to meet you.
 ```
 
-发件人的邮件发送到发送方邮件服务器的邮件缓存中后，SMTP客户就每隔一定 时间对邮件缓存扫描一次，如发现有邮件，就使用SMTP的端口号(25) 与接收方邮件服务器的SMTP服务器建立TCP连接
+发件人的邮件发送到发送方邮件服务器的邮件缓存中后，SMTP客户就每隔一定时间对邮件缓存扫描一次，如发现有邮件，就使用SMTP的端口号（25）与接收方邮件服务器的SMTP服务器建立TCP连接。
 
-连接建立后，接收方SMTP服务器发出220 Service ready (服务就绪)，然后SMTP客户向SMTP服务器发送HELO命令，附上发送方的主机名
+连接建立后，接收方SMTP服务器发出220 Service ready（服务就绪），然后SMTP客户向SMTP服务器发送HELO命令，附上发送方的主机名。
 
-### **2，邮件传送**
+### **2. 邮件传送**
 
 ```bash
 C:MAIL FROM: <alice@crepes.fr>
@@ -327,30 +325,6 @@ S:221 Bye
 - HTTP把每个对象封装到单独的HTTP响应报文中。而SMTP则把所有消息对象放在一个报文之中。
 
 ```bash
-c:telent SMTP.163.com25 #以telenet方式连按163邮件服务器
-S:220163.com Anti-spamGTfor CoremailSystem #220为响应数字，其后的为欢迎信息
-C:HEL0SMTP.163.COm #除了HELO所具有的功能外，EHLO主要用来查询服务器支持的扩充功能
-S:250-mail
-S: 250-AUTH LOGIN PLAIN
-S:250-AUTH=LOGIN PLAIN
-S:250 8BITMIME #最后一个响应数字应答码之后跟的是一个空格，而不是'_'。
-C:AUTH LOGIN #请求认证
-S:334 dxNlcm5hbwU6 #服务器的响应——经过base64编码了的“Username"=
-C:Y29zdGFAYW1heGLOLm5ldA==： #发送经过BASE64编码了的用户名
-S:334 UGFzc3dvcmQ6 #经过BASE64编码了的" Password:"=
-C:1MTk4MJIXNA== #客户端发送的经过BASE64编码了的密码
-S:235 auth successfully #认证成功
-C:MAILFROM:bripengandre@163.com #发送者邮箱
-S:250 _ . #'_'代表省略了一些可读信息
-C:RCPTTO:bripengandre@smail.hust.edu.cn #按收者邮箱
-S:250 _ . #“_“代表省略了一些可读信息
-C：DATA//请求发送数据
-S:354 Enter mail, end with "." on a line by itself
-C: Enjoy Protocol Studing
-C: . 
-S: 250 Message sent
-C:QUIT #退出连按
-S:221 Bye
 ```
 
 ## **POP3: 邮局协议版本3**

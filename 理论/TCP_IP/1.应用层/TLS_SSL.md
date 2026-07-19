@@ -15,10 +15,9 @@ TLS(Transport Layer Security)是SSL的升级版本，由IETF制定标准，是SS
 
 TLS1.0由RFC-2246定义，TLS1.1由RFC-4346定义，TLS1.2由RFC-5246定义，TLS1.3由RFC-8446定义。
 
-    ## TLS解决的问题
-TLS使用加密(Encryption)解决了机密性问题，
-使用消息认证码(Message Authentication Code, MAC)解决了完整性问题，
-使用数字证书(Digital Certificate)解决了源认证性问题。
+## TLS解决的问题
+
+TLS使用加密（Encryption）解决了机密性问题，使用消息认证码（Message Authentication Code, MAC）解决了完整性问题，使用数字证书（Digital Certificate）解决了身份认证问题。
 
 ---
 
@@ -55,12 +54,11 @@ graph TD
     RP --> TCP
 ```
 
-TLS协议的架构分为两层：底层为TLS记录协议，上层为TLS握手协议。TLS握手协议又可以分为握手协议，密码规格变更协议，警报协议，应用数据协议个协议。
+TLS协议的架构分为两层：底层为TLS记录协议，上层为TLS握手协议。TLS握手协议又可以分为握手协议、密码规格变更协议、警报协议、应用数据协议四个协议。
 
-### TLS记录协议
+TLS记录协议关心“如何安全地传输一段数据”，主要职责是封装、分片、压缩、添加MAC与加密、添加TLS记录头。
 
-TLS记录协议关心“如何安全地传输一段数据”， 主要职责是封装，分片，压缩，添加MAC/加密，添加TLS记录头。
-的所有协议都要经过TLS记录协议的封装才能发送给TCP。
+上层的所有协议数据都要经过TLS记录协议的封装才能发送给TCP。
 
 - 分片：TLS的MTU为2^14字节，即16KB，大于该值的报文要分片成多个小的TLS消息。
 
@@ -85,7 +83,7 @@ TLS1.3为了优化性能，弱化了这个协议的存在感，但在兼容模�
 
 - 警报协议：用于通知对方连接出现了问题，或者用来正常关闭连接。
 
-- 应用数据协议：承载真正的业务数据,可以理解为data吧。
+- 应用数据协议：承载真正的业务数据，例如加密后的HTTP、SMTP等应用层数据。
 
 ---
 
@@ -113,7 +111,7 @@ Note left of C: 1. 验证证书合法性<br/>2. 验证签名完整性<br/>3. 生
 C->>S: "Client Key Exchange<br/>(客户端椭圆曲线参数)"
 
 Note over C,S: === 第三阶段：生成密钥 & 验证 ===
-Note left of C: 此时双方都有了双发随机数 + ECDHE参数<br/>可以在本地算出 -> Pre-Master Secret -> Session Key
+Note left of C: 此时双方都有了双方随机数 + ECDHE参数<br/>可以在本地算出 -> Pre-Master Secret -> Session Key
 
 C->>S: "Change Cipher Spec (准备切换加密)"
 C->>S: "Finished (前面所有握手消息的 Hash, 已加密)"
@@ -155,11 +153,11 @@ S：接收到``Client Hello``数据包。发送``Server Hello``包含:
 
 S：使用私钥签名发送``Server Certificate``数据包, 包含服务端的证书链。
 
-S：使用私钥签名发送``Server Key Exchange``数据包，生成ECDHE的椭圆曲线参数作为发给客户端**临时密钥**。这包含了生成密钥所需的“公钥部分”
+S：使用私钥签名发送 ``Server Key Exchange`` 数据包，生成ECDHE的椭圆曲线参数作为发给客户端的临时公钥。这包含了生成密钥所需的“公钥部分”：
 
 ```text
-- 私钥：Priv_{Server\_Eph}
-- 私钥：Priv_{Server\_Eph}
+- 服务端临时公钥：Pub_{Server_Eph}
+- 服务端临时私钥：Priv_{Server_Eph}（保留在服务端，不发送）
 ```
 
 S：发送``Server Hello Done``告诉客户端我说完了。

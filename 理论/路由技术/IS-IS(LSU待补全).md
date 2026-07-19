@@ -7,14 +7,14 @@
 
 ---
 
-is-is是一种内部网关协议，最初为CLNP设计，支持多种网络层协议，相较于OSPF，支持更多网络协议，扩展性更强，多用于ISP（运营商）。但是对路由复杂选路策略没有OSPF强。
+is-is是一种内部网关协议，最初为CLNP设计，支持多种网络层协议。相较于OSPF，它支持更多网络协议，扩展性更强，多用于ISP（运营商）。但是对复杂选路策略的控制没有OSPF强。
 
-- 距离矢量协议
+- 链路状态协议
 - IGP
-- 可tlv扩展，支持多种协议
+- 支持TLV扩展，可动态支持多种协议
 - 收敛更快
 - 路由承载能力更强
-- 比OSPF简单，面向复杂选路策略，没有OSPF控制精确。
+- 比OSPF简单，但面对复杂选路策略时，没有OSPF控制精确。
 - 支持无类
 
 ---
@@ -24,11 +24,11 @@ is-is是一种内部网关协议，最初为CLNP设计，支持多种网络层�
 | IS-IS术语 | OSPF术语 |
 | --- | --- |
 | IS | Router |
-| ES | HOST |
-| DIR | DR |
-| SysID | Routrt ID |
+| ES | Host |
+| DIS | DR |
+| SysID | Router ID |
 | LSP | LSA |
-| IIH | LSA |
+| IIH | Hello |
 | PSNP | LSR与LSAck |
 | CSNP | DD（DBD） |
 
@@ -84,7 +84,7 @@ System ID用于在区域内唯一标识主机或路由器，类似OSPF的Router 
 
 - **Area Address（区域地址）**
 
-IDP和DSP中的High Order DSP组成既能够标识路由域，也能够标识路由域中的区域。因此，它们一起被称为区域地址，**相当于OSPF中的区域编号。**
+IDP和DSP中的High Order DSP的组合既能够标识路由域，也能够标识路由域中的区域。因此，它们一起被称为区域地址，**相当于OSPF中的区域编号。**
 
 L1区域中的所有路由器都必须有相同的区域地址，L2区域内路由器可以有不同的区域地址。
 
@@ -140,7 +140,7 @@ L1区域中的所有路由器都必须有相同的区域地址，L2区域内路�
 
 ## **TLV扩展**
 
-TLV也称为CLV（Code-Length-Value），LV通过**类型（Type）**、**长度（Length）**、**值（Value）** 三元组，将不同信息模块化封装，使IS-IS能够动态支持新功能（如IPv6、流量工程）而无需修改协议框架。新增功能只需定义新TLV类型，旧版本设备可忽略未知类型，确保向后兼容性。
+TLV也称为CLV（Code-Length-Value），TLV通过**类型（Type）**、**长度（Length）**、**值（Value）** 三元组，将不同信息模块化封装，使IS-IS能够动态支持新功能（如IPv6、流量工程）而无需修改协议框架。新增功能只需定义新TLV类型，旧版本设备可忽略未知类型，确保向后兼容性。
 
 - **常见的TLV**
 
@@ -181,19 +181,19 @@ TLV也称为CLV（Code-Length-Value），LV通过**类型（Type）**、**长度
 
 - **Hello PDU**
 
-发现，建立与维护邻居关系，也称为LLH。
+发现、建立与维护邻居关系，也称为IIH。
 
 - **LSP（链路状态报文）**
 
-用于交换链路状态信息，分为两种，Level-1 LSP，Level-2 LSP。 Level-1 LSP由L-1 IS-IS传送，Level-2 LSP由L-2 IS-IS传送，L-1-2 1S-IS则可传送以上两种LSP。（相当于ospf的LSU）
+用于交换链路状态信息，分为两种：Level-1 LSP和Level-2 LSP。Level-1 LSP由Level-1 IS-IS传送，Level-2 LSP由Level-2 IS-IS传送，Level-1-2 IS-IS则可传送以上两种LSP。（相当于OSPF的LSU）
 
 - **SNP（序列号报文）**
 
 SNP包括CSNP和PSNP。
 
-CSNP用于描述链路状态信息库的LSP。（向当于ospf的DBD）
+CSNP用于描述链路状态信息库的LSP。（相当于OSPF的DBD）
 
-PSNP用于确认或请求重新发送LSP。（相当于ospf的LSAck）
+PSNP用于确认或请求重新发送LSP。（相当于OSPF的LSAck）
 
 ### IS-IS报头
 
@@ -294,15 +294,14 @@ PDU的总长度，单位是字节。
 
 ```mermaid
 packet-beta
-title IS-IS LAN Hello PDU
-0-7: "Circuit Type (1B)"
-8-55: "Source ID (6B)"
-56-71: "Holding Time (2B)"
-72-87: "PDU Length (2B)"
-88-95: "Priority (1B)"
-96-111: "Reserved / Padding (2B)"
-112-167: "LAN ID (7B)"
-168-223: "TLV Fields (Variable)"
+title IS-IS LSP PDU Body
+0-15: "PDU Length (2B)"
+16-31: "Remaining Lifetime (2B)"
+32-95: "LSP ID (8B)"
+96-127: "Sequence Number (4B)"
+128-143: "Checksum (2B)"
+144-151: "P / ATT / OL / IS Type (1B)"
+152-183: "TLV Fields (Variable)"
 ```
 
 - **PDU Length**
@@ -319,7 +318,7 @@ ISP的生存时间，以秒为单位。
 
 (System ID(6) + Pseudonode ID(1) + LSP Number(1), e.g. 1921.6800.1001.00-00
 
-- **Sequency Number**
+- **Sequence Number**
 
 LSP的序列号。
 
@@ -361,15 +360,12 @@ LSP的校验和。
 
 ```mermaid
 packet-beta
-title IS-IS LAN Hello PDU
-0-7: "Circuit Type (1B)"
-8-55: "Source ID (6B)"
-56-71: "Holding Time (2B)"
-72-87: "PDU Length (2B)"
-88-95: "Priority (1B)"
-96-111: "Reserved / Padding (2B)"
-112-167: "\LAN ID (7B)"
-168-223: "TLV Fields (Variable)"
+title IS-IS CSNP PDU Body
+0-15: "PDU Length (2B)"
+16-71: "Source ID (7B)"
+72-135: "Start LSP ID (8B)"
+136-199: "End LSP ID (8B)"
+200-231: "TLV Fields (Variable)"
 ```
 
 - **Source ID**
@@ -388,15 +384,10 @@ CSNP报文中最后一个LSP的ID值。
 
 ```mermaid
 packet-beta
-title IS-IS LAN Hello PDU Body
-0-7: "Circuit Type"
-8-55: "Source ID (System ID)"
-56-71: "Holding Time"
-72-87: "PDU Length"
-88-95: "Priority"
-96-111: "Reserved"
-112-167: "LAN ID"
-168-223: "TLV Fields (Variable)"
+title IS-IS PSNP PDU Body
+0-15: "PDU Length (2B)"
+16-71: "Source ID (7B)"
+72-103: "TLV Fields (Variable)"
 ```
 
 ---
@@ -514,7 +505,7 @@ sequenceDiagram
 
 MA网络中路由器会等待两个HELLO报文间隔，再进行DIS选举。hello报文中包含Priority字段，**Priority值最大的将被选举为该广播网的DIS**。**若优先级相同，接口MAC地址较大的被选举为DIS。**
 
-选举完成后每台设备都直接把自己的Isp发给DIS, DIS收集到了所有的LSP，形成完整的LSDB，CSNP周期发送。
+选举完成后每台设备都直接把自己的LSP发给DIS, DIS收集到了所有的LSP，形成完整的LSDB，CSNP周期发送。
 
 ISIS路由器收到LSP，不回确认包。
 
