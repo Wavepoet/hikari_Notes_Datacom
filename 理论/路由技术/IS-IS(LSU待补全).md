@@ -515,4 +515,99 @@ LSDB同步后用SPF算法进行路由计算。
 
 ![image9.png](images/IS-IS_image/image9.png)
 
-## **LSU**
+## **LSP 泛洪与更新机制**
+
+> **注**：IS-IS 中没有独立的 LSU 报文，由 **LSP（链路状态报文）** 直接充当链路状态数据的传输载体。
+
+### **LSP 报文数据包结构 (Packet Structure)**
+
+LSP 报文由 **通用报头 (Common Header)**、**LSP 专用报头 (LSP Header)** 和 **变长 TLV 载荷 (TLV Payload)** 三部分组成，整体结构如下：
+
+```mermaid
+packet-beta
+title IS-IS LSP PDU 数据包完整结构
+0-7: "Intradomain Protocol Discriminator (0x83)"
+8-15: "Length Indicator (Header Length)"
+16-23: "Version/Protocol ID Extension (0x01)"
+24-31: "ID Length (0: 6B System ID)"
+32-39: "R R R | PDU Type (L1:18 / L2:20)"
+40-47: "Version (0x01)"
+48-55: "Reserved (0x00)"
+56-63: "Maximum Area Addresses"
+64-79: "PDU Length (2 Bytes)"
+80-95: "Remaining Lifetime (2 Bytes)"
+96-159: "LSP ID (8B: System ID + Pseudonode ID + Fragment No)"
+160-191: "Sequence Number (4 Bytes)"
+192-207: "Checksum (2 Bytes)"
+208-215: "P | ATT | OL | IS Type (1 Byte)"
+216-271: "TLV Fields (Variable Payload)"
+```
+
+#### **报文字段详解：**
+- **通用报头部分 (Common Header - 8 字节)**：
+  - **Protocol Discriminator**：协议鉴别符，固定为 `0x83`。
+  - **PDU Type**：`18 (0x12)` 表示 Level-1 LSP；`20 (0x14)` 表示 Level-2 LSP。
+- **LSP 专用报头部分 (LSP Header - 19 字节)**：
+  - **PDU Length**：包含报头与 TLV 的 LSP 报文总字节数。
+  - **Remaining Lifetime**：剩余生存时间（秒），从 1200 开始递减至 0。
+  - **LSP ID**：由 `System ID (6B) + 伪节点 ID (1B) + 分片号 (1B)` 组成，唯一标识一条 LSP 分片。
+  - **Sequence Number**：4 字节序列号，从 `0x00000001` 开始递增，越大代表更新。
+  - **Checksum**：包含整个 LSP 报文除 Lifetime 之外内容的校验和。
+  - **标志位 (1 字节)**：
+    - **P (Partition Repair)**：区域分割修复标志（仅 L2 有效）。
+    - **ATT (Attachment)**：区域连接标志（L1/L2 路由器在 L1 LSP 中置位，指示 L1 路由器生成缺省路由指向自己）。
+    - **OL (Overload)**：过载标志位（内存不足或人工维护时置位，全网 SPF 计算时不将其作为中间节点转发流量）。
+    - **IS Type**：生成该 LSP 的路由器类型（`01` 为 Level-1，`11` 为 Level-2）。
+- **变长 TLV 载荷部分 (Variable TLVs)**：
+  - 承载实际的拓扑与路由信息（如 TLV 1 区域地址、TLV 2 IS 邻居、TLV 128 IP 内部可达性、TLV 236 IPv6 可达性等）。
+
+---
+
+### **LSP 的分类**
+
+IS-IS 中的 LSP 主要从以下三个维度进行划分：
+
+#### 1. 按级别分类 (Level-1 / Level-2)
+- **Level-1 LSP**：由 Level-1 或 Level-1-2 路由器产生，仅在同一个 Level-1 区域内泛洪，描述区域内拓扑与路由信息。
+- **Level-2 LSP**：由 Level-2 或 Level-1-2 路由器产生，在 Level-2 骨干区域内泛洪，描述骨干网拓扑及区域间路由信息。
+
+#### 2. 按生成节点分类 (实节点 / 伪节点)
+- **实节点 LSP（Non-Pseudonode LSP）**：由真实路由器产生，描述自身系统 ID、直连接口及配置的 IP 前缀。
+  - **LSP ID 格式**：`System ID.00-分片号`（伪节点 ID 固定为 `00`，如 `1921.6800.1001.00-00`）。
+- **伪节点 LSP（Pseudonode LSP）**：由广播网中的 **DIS** 代表整个网段生成，描述该广播网上连接的所有路由器。
+  - **LSP ID 格式**：`System ID.非00-分片号`（伪节点 ID 非 `00`，如 `1921.6800.1001.01-00`）。
+
+#### 3. 按分片分类 (LSP Fragments)
+- **主分片（Fragment 00）**：包含路由器的基础属性、区域地址及第一批 TLV。
+- **扩展分片（Fragment 01~FF）**：当路由或拓扑条目过多超出接口 MTU（默认 1492 字节）时产生，单台路由器最多支持 256 个分片。
+
+---
+
+### **LSP 的产生与刷新**
+
+- **周期性刷新**：默认刷新周期为 **900s**，最大生存时间（Remaining Lifetime）为 **1200s**（倒计时归零则从 LSDB 中删除）。
+- **触发更新**：链路状态、邻居关系或路由开销变化时立即产生新 LSP，序列号（Sequence Number）依次递增。
+
+---
+
+### **LSP 传输控制标志位 (SRM 与 SSN)**
+
+路由器在接口级别为每个 LSP 维护两个状态标志位：
+- **SRM (Send Routing Message)**：置 1 表示该 LSP 需要从该接口发送或重传。
+- **SSN (Send Sequence Number)**：置 1 表示需要通过 PSNP 报文向邻居进行确认或请求。
+
+---
+
+### **P2P 与 MA 网络的泛洪与确认对比**
+
+| 维度 | P2P 网络 | MA 广播网络 |
+| --- | --- | --- |
+| **发送方式** | 单播 / 组播 | 组播（L1: `01-80-C2-00-00-14`，L2: `01-80-C2-00-00-15`） |
+| **确认机制** | **显式确认**：对端必须回复 PSNP 报文 | **隐式确认**：不回 ACK，依靠 DIS 周期性（10s）广播 CSNP |
+| **重传机制** | 未收到 PSNP 则 SRM 定时器（5s）超时重传 | 无单包重传，由节点对比 CSNP 发现缺失后发 PSNP 主动请求 |
+
+---
+
+### **LSP 撤销**
+
+- **路由撤销（Purging）**：始发路由器产生一个序列号加 1、Remaining Lifetime 置为 0 的 LSP 向全网泛洪，其他节点收到后即从 LSDB 中清除对应的链路状态信息。
