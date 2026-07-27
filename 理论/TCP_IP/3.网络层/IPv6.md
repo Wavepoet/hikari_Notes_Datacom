@@ -78,6 +78,13 @@ IPv6地址可以静态设定，DHCP设定。同时也可以随机生成。
 因为以太网MAC地址中第7位（U/L位）为0代表全球管理，为1代表本地管理，但在IPv6地址中，第7位为1代表全球管理，为0代表本地管理。由于两者的定义刚好相反，所以需要将第七位反转，详见 RFC 5342 文档。
 
 ![image2.png](IPv6image/image2.png)
+**隐私扩展随机地址 (Privacy Extensions - RFC 4941)**
+EUI-64 固定的 MAC 字段会导致用户的物理设备在接入不同网络（如公共 Wi-Fi）时被长效追踪，存在隐私泄露风险。
+终端根据伪随机算法生成一个临时的 Interface ID，并设定较短的生存期。终端主动发起的出站连接优先使用该临时地址作为源 IP，防止行为追踪。
+
+**稳定不透明地址 (Stable Opaque Privacy Address - RFC 7217)**
+替代规范中的 EUI-64。既要避免暴露 MAC 地址，又需要在特定的网络环境下保持 IP 地址的稳定性，例如需要避免隐私扩展地址频繁变动导致内部防火墙策略失效。
+基于公式 `Hash(Prefix + 接口名称 + 网络ID + 内部密钥)` 计算 Interface ID。在同一个子网内地址永久保持稳定，一旦切换到新的网络前缀，则会自动变更为全新的接口 ID。
 
 ---
 
@@ -322,15 +329,67 @@ title IPv6映射MAC地址格式
 
 任意播地址的主要优势在于提供服务的高可用性和负载均衡。
 
-## **IPv6的编址(待补全)**
+
+---
+
+### SLAAC 与 DHCPv6 标志位 (M/O Flags)**
+
+IPv6 节点的 IP 地址配置分为 **SLAAC（无状态自动配置）** 与 **DHCPv6（有状态配置）**，网关路由器通过发送 **RA (Router Advertisement)** 报文中的 **M 标志** 与 **O 标志** 来显式控制终端的编址行为：
+
+```mermaid
+graph TD
+    RA["终端收到网关 RA 报文"] --> CheckM{"检查 M 标志位<br/>(Managed Flag)"}
+    CheckM -- "M = 0 (默认)" --> SLAAC["启用 SLAAC 自动配置<br/>提取 RA 前缀结合本地 Interface ID 生成 GUA"]
+    CheckM -- "M = 1" --> StatefulDHCP["禁用 SLAAC<br/>通过 Stateful DHCPv6 向服务器申请 IP 地址"]
+    
+    SLAAC --> CheckO{"检查 O 标志位<br/>(Other Config Flag)"}
+    CheckO -- "O = 0" --> End1["配置完成<br/>(仅使用 RA 携带的信息)"]
+    CheckO -- "O = 1" --> StatelessDHCP["通过 Stateless DHCPv6<br/>向服务器获取 DNS / 域名等扩展参数"]
+```
+
+- **M 标志 (Managed Address Configuration Flag)**：
+  - `M = 0`（默认）：允许终端使用 SLAAC 方式自主计算并生成 IP 地址。
+  - `M = 1`：指示终端禁止使用 SLAAC 生成地址，必须通过有状态 DHCPv6 服务器申请 IP 地址。
+- **O 标志 (Other Configuration Flag)**：
+  - `O = 0`：不通过 DHCPv6 获取其它非地址参数。
+  - `O = 1`：指示终端向无状态 DHCPv6 服务器请求 DNS 服务器地址、域名、SIP/NTP 等其它网络参数。
+
+---
+
+## ** 单接口多 IPv6 地址与默认地址选择机制 (RFC 6724)**
+
+#### **单接口多地址共存特性**
+区别于 IPv4 一个物理接口通常只配置一个主 IP 地址，一个启用了 IPv6 的网络接口通常会**同时绑定多个不同作用域的地址**：
+1. **链路本地地址 (LLA)**：`FE80::/10`（物理接口启用 IPv6 后的必选基础地址，用于邻居发现与网关通信）。
+2. **全球单播地址 (GUA)**：`2000::/3`（公网可路由地址，可配置多个）。
+3. **唯一本地地址 (ULA)**：`FD00::/8`（企业私网路由地址）。
+4. **临时隐私地址 (Temporary)**：基于 RFC 4941 动态生成，用于对外发起主动连接。
+5. **被请求节点组播地址**：`FF02::1:FFxx:xxxx`（监听本地节点的 NDP 请求）。
+
+### **默认地址选择规则 (Default Address Selection - RFC 6724)**
+当节点存在多个源 IPv6 地址且目标主机解析出多个目的 IPv6 地址时，操作系统协议栈严格按以下规则决定最佳发送源地址：
+1. **作用域匹配原则 (Scope Matching)**：若目的地址为 Link-Local 范围，则源地址强制选择 Link-Local 地址。
+2. **避免使用受限/拟停用地址**：优先选择状态为 Preferred（首选）的地址，避免使用 Deprecated（已过时/即将失效）的地址。
+3. **最长前缀匹配原则 (Longest Prefix Match)**：对比源地址与目的地址的前缀，前缀重合位数越长的源地址优先使用。
+4. **隐私地址优先原则**：在前往外网时，优先选择 RFC 4941 生成的临时隐私地址作为源 IP 地址。
+
+---
+
 
 ## **IPv6数据包**
 
-IPv6基本头
-
-![image3.png](attachment:b2603361-055c-4129-a72d-59034b29239e:image3.png)
-
-![image4.png](attachment:93410bca-528b-4bde-a0f1-8213db062516:image.png)
+```mermaid
+packet-beta
+title IPv6 基本报头结构 (固定40字节 / 320比特)
+0-3: "Version (4bit)"
+4-11: "Traffic Class (8bit)"
+12-31: "Flow Label (20bit)"
+32-47: "Payload Length (16bit)"
+48-55: "Next Header (8bit)"
+56-63: "Hop Limit (8bit)"
+64-191: "Source Address 源地址 (128bit)"
+192-319: "Destination Address 目的地址 (128bit)"
+```
 
 - Version(版本)
 
